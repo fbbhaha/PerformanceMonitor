@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>性能检测平台</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="icon" href="" type="image/x-icon"/>
+    <link href="../../Scripts/layui/css/layui.css" rel="stylesheet" type="text/css"/>
+    <link href="../../Styles/Site.css" rel="stylesheet" type="text/css"/>
+    <script src="../../Scripts/jquery/jquery-1.11.2.min.js"></script>
+    <script src="../../Scripts/layui/layui.all.js"></script>
+    <script src="../../Scripts/util.js"></script>
+</head>
+
+<body>
+<div class="layui-fluid">
+    <div class="layui-row layui-col-space15">
+        <div class="layui-card">
+            <div class="layui-card-header">服务器基本信息</div>
+            <div class="layui-card-body" pad15="">
+                <div class="layui-form" lay-filter="form">
+                    <input type="hidden" name="id" value="0">
+                    <input type="hidden" name="userId" value="1">
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">服务器IP</label>
+                        <div class="layui-input-inline">
+                            <input type="text" name="agentIp" class="layui-input" lay-verify="required">
+                        </div>
+                        <a class="layui-btn layui-btn-xs layui-btn-danger test" style="margin-top: 10px;">测试连接</a>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label"></span>服务器名称</label>
+                        <div class="layui-input-inline">
+                            <input type="text" name="agentName" class="layui-input" lay-verify="required">
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">端口号</label>
+                        <div class="layui-input-inline">
+                            <input type="text" name="agentPort" class="layui-input" lay-verify="required">
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">所在分组</label>
+                        <div class="layui-input-inline">
+                            <input type="text" name="groupId" class="layui-input" lay-verify="required">
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <div class="layui-input-block">
+                            <a class="layui-btn layui-btn-primary" href="ServerList.html">返回</a>
+                            <button class="layui-btn" lay-submit="">保存</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+<script>
+    //初始化方法
+    var id = GetQueryString("aId");
+    $(function() {
+        //initAjaxLoad();
+        formEvent();
+        if (id) {
+            showEdit(id);
+        }else{
+            $(".test").css("display","none");
+        }
+        $(".test").click(function(){
+            testline();
+        })
+    });
+    
+    //渲染表单数据
+    function showEdit(id) {
+        $.getJSON(readearth.host + "/agent/details", {
+            aId: id
+        }, function(res) {
+            var obj = res.data;
+            layui.form.val("form", {
+                "id": obj.id,
+                "agentIp": obj.agentIp,
+                "agentName": obj.agentName,
+                "agentPort": obj.agentPort,
+                "groupId": obj.groupId
+            })
+        })
+    }
+    
+    //表单的事件
+    function formEvent() {
+        var id = $("[name='id']");
+        var agentIp = $("[name='agentIp']");
+        var agentName = $("[name='agentName']");
+        var agentPort = $("[name='agentPort']");
+        var groupId = $("[name='groupId']");
+        layui.form.on('submit()', function(data) {
+            //判断是添加还是修改
+            var type = "post";
+            var method = "add";
+            if ($("input[name='id']").val() != 0) {
+                method = "update";
+                type = "put";
+            }
+            
+            $.ajax({
+                url: readearth.host+ "/agent/" + method,
+                data: JSON.stringify(data.field),
+                dataType:"json",
+                type: type,
+                contentType: "application/json",
+                success: function(res) {
+                    if (res.code!=200)
+                        parent.layui.layer.msg('保存失败!');
+                    else {
+                        parent.layui.layer.msg('保存成功!');
+                        location.href = "ServerList.html";
+                    }
+                },
+                error: function() {
+                    parent.layui.layer.msg("抱歉，系统异常！");
+                }
+        });
+            return false; //阻止表单跳转。如果需要表单跳转，去掉这段即可。
+        });
+    }
+    
+    //测试连接
+    function testline(){
+        var ip = $("input[name='agentIp']").val();
+        var index;
+        $.ajax({
+            url: readearth.host+"/agent/connTest",
+            data: {aId:id},
+            dataType:"json",
+            type: 'get',
+            beforeSend: function(){
+                index = parent.layui.layer.load(2,{ shade: [0.3, '#000'] })
+            },
+            success: function(res) {
+                parent.layui.layer.close(index);
+                if(res.code==200){
+                    layui.layer.msg("连接成功！",{icon:6});
+                }else{
+                    layui.layer.msg("连接失败！",{icon:5});
+                }
+            }
+        })
+    }
+</script>
+</html>

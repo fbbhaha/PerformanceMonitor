@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>性能检测平台</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="icon" href="" type="image/x-icon" />
+    <script src="../../Scripts/util.js"></script>
+    <link href="../../Scripts/layui/css/layui.css" rel="stylesheet" type="text/css" />
+    <link href="../../Styles/Site.css" rel="stylesheet" type="text/css" />
+    <script src="../../Scripts/jquery/jquery-1.11.2.min.js"></script>
+    <script src="../../Scripts/layui/layui.all.js"></script>
+    <script src="../../Scripts/echarts/echarts.js"></script>
+    <script src="../../Scripts/util.js"></script>
+</head>
+
+<body>
+    <blockquote class="layui-elem-quote" style="margin-top: 10px;display: flex">
+        详细信息
+        <a href="ServerList.html" style="width: 80px;color: #009688; position: absolute; right: 50px;">返回</a>
+    </blockquote>
+    <div class="server-detail">
+        <input type="hidden" id="serverId">
+        <div class="server-ip">192.168.1.1</div>
+        <p>系统信息</p>
+        <div class="server-msg">
+            <div>系统描述：<span id="osName"></span></div>
+            <div>系统架构：<span id="osArch"></span></div>
+            <div>创建时间：<span id="createDay"></span></div>
+            <div>服务器IP：<span id="copIp"></span></div>
+        </div>
+        <p>硬盘信息</p>
+        <table class="layui-hide" id="diskTable"></table>
+        <p>历史查看</p>
+        <div class="layui-tab layui-tab-brief" style="background-color: #f6f6f6;">
+            <ul class="layui-tab-title" style="display: flex; justify-content: space-around;" id="times">
+            </ul>
+        </div>
+        <div id="charts">
+            <div id="cpu" style="width: 100%;height: 600px"></div>
+            <div id="cache" style="width: 100%;height: 600px;margin-top: 30px;"></div>
+        </div>
+
+    </div>
+</body>
+<script>
+    var id = GetQueryString("id");
+    var startTime, endTime, timeid;
+    var cpu = echarts.init(document.getElementById('cpu'));
+    var cache = echarts.init(document.getElementById('cache'));
+    $(function () {
+        initedit();
+        selectTime();
+        $("#times").find("li").each(function (i, item) {
+            $(this).click(function () {
+                startTime = $(this).html();
+                endTime = new Date(new Date(startTime).getTime() + (24 * 60 * 60 * 1000))
+                    .format("yyyy-MM-dd");
+                if (i == 0) {
+                    var sign = createCharts();
+                    if (sign != 4)
+                        timeid = setInterval("createCharts()", "60000");
+                } else {
+                    if (timeid != null)
+                        clearInterval(timeid);
+                    createCharts();
+                }
+            })
+        })
+        $("#times .layui-this").click()
+    });
+
+    function initedit() {
+        $.getJSON(readearth.host + "/agent/details", {
+            aId: id
+        }, function (res) {
+            if (res.code == 200) {
+                var data = res.data;
+                $(".server-ip").html(data.agentIp);
+                $("#osName").html(data.sys.osName);
+                $("#osArch").html(data.sys.osArch);
+                $("#createDay").html(data.sys.createDay);
+                $("#copIp").html(data.sys.copIp);
+                initDetailCharts(data.sysFileList);
+            }
+        });
+        selectTime();
+    }
+
+    function initDetailCharts(data) {
+        layui.table.render({
+            elem: '#diskTable',
+            data: data,
+            cols: [
+                [{
+                    field: 'typeName',
+                    title: '盘符路径'
+                }, {
+                    field: 'sysFileTotal',
+                    title: '磁盘空间'
+                }, {
+                    field: 'sysFileUsed',
+                    title: '已使用'
+                }, {
+                    field: 'sysFileFree',
+                    title: '可用'
+                }, {
+                    field: 'sysFileUsage',
+                    title: '已使用占比'
+                }]
+            ]
+        });
+        $("tbody").find("td").each(function (i, item) {
+            if ($(this).attr("data-field") == 'sysFileUsage') {
+                if ($(this).children("div").html() >= 70 && $(this).children("div").html() < 90) {
+                    $(this).parent().css("background-color", "#FFB800");
+                    $(this).parent().css("color", "white")
+                } else if ($(this).children("div").html() >= 90) {
+                    $(this).parent().css("background-color", "#FF5722");
+                    $(this).parent().css("color", "white")
+                } else
+                    $(this).parent().css("color", "black")
+
+            }
+        })
+
+
+    }
+
+    function selectTime() {
+        var nowdate = new Date();
+        var nowweek = [];
+        var timeli = "";
+        for (var i = 0; i < 7; i++) {
+            var a = new Date(nowdate.getTime() - i * (24 * 60 * 60 * 1000)).format("yyyy-MM-dd")
+            nowweek.push(a)
+            if (nowdate.format("yyyy-MM-dd") == a) {
+                timeli += '<li class="layui-this">' + a + '</li>'
+            } else {
+                timeli += '<li>' + a + '</li>'
+            }
+        }
+        $("#times").html(timeli);
+
+    }
+
+    function createCharts() {
+        var sign = 1;
+        $.ajaxSettings.async = false;
+        $.get(readearth.host + "/resource/list/timeSlot", {
+            agentId: id,
+            startTime: startTime + ' ' + '00:00:00',
+            endTime: endTime + ' ' + '00:00:00',
+            typeCode: 1
+        }, function (res) {
+            if (res.code == 200) {
+                var data = res.data;
+                var timeArray = [],
+                    usedSArray = [],
+                    leisureDArray = [],
+                    waitArray = [];
+                $.each(data, function (i, item) {
+                    timeArray.push(item.createTime);
+                    usedSArray.push(item.cpuUsed);
+                    leisureDArray.push(item.cpuFree);
+                    waitArray.push(item.cpuWait)
+                })
+                option = {
+                    title: {
+                        text: 'CPU使用率%'
+                    },
+                    tooltip: {
+                        trigger: 'axis'
+                    },
+                    xAxis: {
+                        data: timeArray
+                    },
+                    yAxis: {
+
+                    },
+                    legend: {
+                        data: ['使用率', '等待率']
+                    },
+                    dataZoom: [{
+                        startValue: timeArray[0]
+                    }, {
+                        type: 'inside'
+                    }],
+                    series: [{
+                        type: 'line',
+                        smooth: true,
+                        name: '使用率',
+                        data: usedSArray
+                    }, {
+                        type: 'line',
+                        smooth: true,
+                        name: '等待率',
+                        data: waitArray
+                    }]
+                };
+                cpu.setOption(option);
+            } else {
+                sign += 1;
+                cpu.clear();
+            }
+
+        })
+        $.get(readearth.host + "/resource/list/timeSlot", {
+            agentId: id,
+            startTime: startTime + ' ' + '00:00:00',
+            endTime: endTime + ' ' + '00:00:00',
+            typeCode: 2
+        }, function (res) {
+            if (res.code == 200) {
+                var data = res.data;
+                var timeArray = [],
+                    usedSArray = [],
+                    leisureDArray = [],
+                    usageArray = [];
+                $.each(data, function (i, item) {
+                    timeArray.push(item.createTime);
+                    usedSArray.push(item.memUsed);
+                    leisureDArray.push(item.memFree);
+                    usageArray.push(item.memUsage)
+                })
+                option = {
+                    title: {
+                        text: '内存使用率%'
+                    },
+                    tooltip: {
+                        trigger: 'axis'
+                    },
+                    legend: {
+                        data: ['剩余空间', '已使用', '空间使用率']
+                    },
+                    xAxis: {
+                        data: timeArray
+                    },
+                    yAxis: {
+
+                    },
+                    dataZoom: [{
+                        startValue: timeArray[0]
+                    }, {
+                        type: 'inside'
+                    }],
+                    series: [{
+                        type: 'line',
+                        name: '剩余空间',
+                        smooth: true,
+                        data: leisureDArray
+                    }, {
+                        type: 'line',
+                        name: '已使用',
+                        smooth: true,
+                        data: usedSArray
+                    }, {
+                        type: 'line',
+                        name: '空间使用率',
+                        smooth: true,
+                        data: usageArray
+                    }]
+                };
+                cache.setOption(option);
+            } else {
+                sign += 2;
+                cache.clear();
+            }
+        })
+        if (sign == 2)
+            layui.layer.msg("CPU信息暂无数据", {
+                icon: 5
+            });
+        else if (sign == 3)
+            layui.layer.msg("内存信息暂无数据", {
+                icon: 5
+            });
+        else if (sign == 4)
+            layui.layer.msg("暂无数据", {
+                icon: 5
+            });
+        return sign;
+    }
+</script>
+
+</html>

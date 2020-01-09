@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>性能检测平台</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="icon" href="" type="image/x-icon"/>
+    <link href="../Scripts/layui/css/layui.css" rel="stylesheet" type="text/css"/>
+    <link href="../Styles/Site.css" rel="stylesheet" type="text/css"/>
+    <script src="../Scripts/jquery/jquery-1.11.2.min.js"></script>
+    <script src="../Scripts/layui/layui.js"></script>
+</head>
+<body>
+<!--顶部导航栏-->
+<div class="layui-row" style="background-color: white">
+    <div class="layui-col-md2">
+        <div class="index-title">
+            性能检测平台
+        </div>
+    </div>
+    <div class="layui-col-md1 layui-col-lg-offset9">
+        <div class="index-icon">
+            <a href=""> <img src="../Images/个人中心.png"></a>
+            <a href="User/Login.html"> <img src="../Images/错误.png"></a>
+        </div>
+    </div>
+</div>
+<!--侧边导航栏-->
+<div class="index-main">
+    <div class="layui-bg-black">
+        <ul class="layui-nav layui-nav-tree" lay-filter="test" style="width: 250px;">
+            <li class="layui-nav-item layui-nav-itemed">
+                <a href="javascript:;"><img src="../Images/仪表盘.png" style="margin-right: 15px">仪表盘</a>
+                <dl class="layui-nav-child">
+                    <dd><a href="Server/MonitorIndex.html" target="mainiframe" class="layui-this">监控概要</a></dd>
+                    <dd><a href="Server/ServerList.html" target="mainiframe">服务器列表</a></dd>
+                    <dd><a href="">进程列表</a></dd>
+                </dl>
+            </li>
+            <li class="layui-nav-item">
+                <a href="javascript:;">数据监控</a>
+                <dl class="layui-nav-child">
+                    <dd><a href="DataMonitor/DBMonitor.html" target="mainiframe">数据库监控</a></dd>
+                    <dd><a href="DataMonitor/PortMonitor.html" target="mainiframe">服务器接口监控</a></dd>
+                </dl>
+            </li>
+            <li class="layui-nav-item"><a href="">Redis健康检测</a></li>
+            <li class="layui-nav-item"><a href="">服务器健康检测</a></li>
+            <li class="layui-nav-item"><a href="">系统信息</a></li>
+            <li class="layui-nav-item"><a href="DataMonitor/MailForecast.html" target="mainiframe">邮件预警</a></li>
+            <li class="layui-nav-item"><a href="">帮助</a></li>
+        </ul>
+    </div>
+    <!--右侧主页面-->
+    <iframe src="Server/MonitorIndex.html" name="mainiframe" frameborder="0"></iframe>
+</div>
+<script>
+    layui.use(['element','layer'],function () {
+        var element = layui.element;
+        var layer = layui.layer;
+    })
+</script>
+</body>
+</html>

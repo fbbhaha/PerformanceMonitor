@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>性能检测平台</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="icon" href="" type="image/x-icon" />
+    <link href="../../Scripts/layui/css/layui.css" rel="stylesheet" type="text/css" />
+    <link href="../../Styles/Site.css" rel="stylesheet" type="text/css" />
+    <script src="../../Scripts/jquery/jquery-1.11.2.min.js"></script>
+    <script src="../../Scripts/layui/layui.all.js"></script>
+    <script src="../../Scripts/util.js"></script>
+</head>
+<style>
+    .dbpara {
+        background-color: #f6f6f6;
+        width: 600px;
+        margin-left: 110px;
+        overflow: hidden;
+        height: 0;
+
+    }
+
+    .portpara {
+        background-color: #f6f6f6;
+        width: 600px;
+        margin-left: 110px;
+        overflow: hidden;
+        height: 0;
+    }
+
+    .dbpara .layui-form {
+        padding: 25px;
+    }
+
+    .tip {
+        background-color: white;
+        height: 26px;
+        width: 100%;
+    }
+    .select-content{
+        margin-bottom: 30px;
+    }
+</style>
+
+<body>
+    <div class="layui-fluid">
+        <div class="layui-row layui-col-space15">
+            <div class="layui-card">
+                <div class="layui-card-header">监控任务</div>
+                <div class="layui-card-body" pad15="">
+                    <div class="layui-form" lay-filter="form">
+                        <input type="hidden" name="userId" value="1">
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">服务器IP</label>
+                            <div class="layui-input-inline">
+                                <input type="text" name="agentIp" class="layui-input" lay-verify="required">
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <label class="layui-form-label"></span>负责人</label>
+                            <div class="layui-input-inline">
+                                <select name="ntcUserId" lay-verify="" lay-search>
+                                    <option value="1">张三</option>
+                                    <option value="2">李四</option>
+                                    <option value="1">王五</option>
+                                    <option value="2">赵六</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">立即执行</label>
+                            <div class="layui-input-block">
+                                <input type="checkbox" name="execStat" lay-skin="switch" lay-text="是|否">
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">任务类型</label>
+                            <div class="layui-input-inline">
+                                <select name="taskType" lay-search lay-filter="taskType" disabled>
+                                    <option value="5">数据库监控</option>
+                                    <option value="6">接口监控</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="select-content">
+                        </div>
+                        <div class="layui-form-item">
+                            <div class="layui-input-block">
+                                <a class="layui-btn layui-btn-primary" href="ServerList.html">返回</a>
+                                <button class="layui-btn" lay-submit="">保存</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script type="text/html" id="dbpara">
+        <div class="dbpara">
+            <div class="tip"><img src="../../Images/三角上.png"></div>
+            <div class="layui-form" name="taskParam" lay-filter="dbpara">
+                <div class="layui-form-item">
+                    <label class="layui-form-label">数据库IP</label>
+                    <div class="layui-input-inline">
+                        <input type="text" name="ip" class="layui-input" lay-verify="required">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label"></span>端口号</label>
+                    <div class="layui-input-inline">
+                        <input type="text" name="port" class="layui-input" lay-verify="required">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">用户名</label>
+                    <div class="layui-input-inline">
+                        <input type="text" name="userName" class="layui-input" lay-verify="required">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">密码</label>
+                    <div class="layui-input-inline">
+                        <input type="text" name="password" class="layui-input" lay-verify="required">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">数据库名称</label>
+                    <div class="layui-input-inline">
+                        <input type="text" name="dbName" class="layui-input" lay-verify="required">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">数据库类型</label>
+                    <div class="layui-input-inline">
+                        <select name="dbTypeCode" lay-verify="" lay-search>
+                            <option value="">请选择类型</option>
+                            <option value="1">MySql</option>
+                            <option value="2">Oracle</option>
+                            <option value="1">SqlServer</option>
+                            <option value="2">未知</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <div class="layui-input-block">
+                        <a class="layui-btn layui-btn-warm">测试数据库连接</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </script>
+    <script type="text/html" id="portpara">
+        <div class="portpara">
+            <div class="tip"><img src="../../Images/三角上.png"></div>
+            <div class="layui-form" name="taskParam" lay-filter="portpara">
+                <div class="layui-form-item">
+                    <label class="layui-form-label">目标接口URL</label>
+                    <div class="layui-input-inline">
+                        <input type="text" name="targetUrl" class="layui-input" lay-verify="required">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label"></span>数据发送方式</label>
+                    <div class="layui-input-inline">
+                        <select name="reqMethod" lay-verify="" lay-search>
+                            <option value="">请选择类型</option>
+                            <option value="1">Post</option>
+                            <option value="2">Get</option>
+                            <option value="1">Delete</option>
+                            <option value="2">Put</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">参数</label>
+                    <div class="layui-input-inline">
+                        <input type="text" name="reqParam" class="layui-input">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </script>
+</body>
+<script>
+    //初始化方法
+    var taskType = GetQueryString("taskType");
+    $(function () {
+        showEdit();
+        console.log($("[name='taskType']").val());
+        if ($("[name='taskType']").val() == 5) {
+            $(".select-content").html($("#dbpara").html());
+            $(".portpara").css("transition", "height 0S");
+            $(".portpara").css("height", "0");
+            $(".dbpara").css("transition", "height 1S");
+            $(".dbpara").css("height", "430px");
+        } else if ($("[name='taskType']").val() == 6) {
+            $(".select-content").html($("#portpara").html());
+            $(".dbpara").css("transition", "height 0S");
+            $(".dbpara").css("height", "0");
+            $(".portpara").css("transition", "height 1S");
+            $(".portpara").css("height", "430px");
+        } else {
+            $(".dbpara").css("height", "0");
+            $(".portpara").css("height", "0");
+        }
+        formEvent();
+        layui.form.render();
+    });
+
+    //渲染表单数据
+    function showEdit() {
+        layui.form.val("form", {
+            "taskType": taskType,
+        })
+    }
+
+    //表单的事件
+    function formEvent() {
+        layui.form.on('submit()', function (data) {
+            data.field.taskParam = layui.form.val("dbpara")
+            data.field.execStat = data.field.execStat ? true : false;
+            console.log(data.field)
+            // $.ajax({
+            //     url: readearth.host+ "/task/add",
+            //     data: JSON.stringify(data.field),
+            //     dataType:"json",
+            //     type: 'post',
+            //     contentType: "application/json",
+            //     success: function(res) {
+            //         if (res.code!=200)
+            //             parent.layui.layer.msg('生成任务成功!');
+            //         else {
+            //             parent.layui.layer.msg('生成任务失败!');
+            //             location.href = "ServerList.html";
+            //         }
+            //     },
+            //     error: function() {
+            //         parent.layui.layer.msg("抱歉，系统异常！");
+            //     }
+            // });
+            return false; //阻止表单跳转。如果需要表单跳转，去掉这段即可。
+        });
+    }
+</script>
+
+</html>

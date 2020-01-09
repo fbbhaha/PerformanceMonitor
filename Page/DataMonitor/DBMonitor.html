@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>性能检测平台</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="icon" href="" type="image/x-icon"/>
+    <link href="../../Scripts/layui/css/layui.css" rel="stylesheet" type="text/css"/>
+    <link href="../../Styles/Site.css" rel="stylesheet" type="text/css"/>
+    <script src="../../Scripts/jquery/jquery-1.11.2.min.js"></script>
+    <script src="../../Scripts/layui/layui.all.js"></script>
+    <script src="../../Scripts/util.js"></script>
+</head>
+<body>
+<div class="servertable">
+    <p style="font-size: 16px;">服务器列表</p>
+    <hr>
+    <table class="layui-hide" id="test" lay-filter="test"></table>
+</div>
+
+<script type="text/html" id="toolbarDemo">
+    <div class="layui-btn-container">
+        <a class="layui-btn layui-btn-sm" href="TaskEdit.html?taskType=5" target="mainiframe">新增任务</a>
+        <a class="layui-btn layui-btn-sm" lay-event="delete">删除任务</a>
+    </div>
+</script>
+</body>
+<script>
+    $(function () {
+        initServerCharts()
+    });
+
+    function initServerCharts(){
+        layui.table.render({
+            elem: '#test'
+            , url: readearth.host + "/agent/list"
+            , toolbar: '#toolbarDemo' //开启头部工具栏，并为其绑定左侧模板
+            , parseData: function (res) { //res 即为原始返回的数据
+                return {
+                    "code": res.code = 200 ? 0 : 1, //解析接口状态
+                    "msg":  "",//解析数据长度
+                    "data": res.data.records, //解析数据列表
+                    "count":res.data.total,
+                };
+            }
+            , cols: [[
+                {type: 'checkbox', fixed: 'left'}
+                , {field: 'id', title: 'ID'}
+                , {field: 'agentName', title: '服务器名'} 
+                , {field: 'agentIp', title: '服务器IP'}
+                , {field: 'agentPort', title: '端口号'}
+                , {field: 'groupId', title: '分组ID'}
+                , {field: 'userId', title: '创建者ID'}
+                , {field: 'cpuSys', title: 'CPU系统使用率'}
+                , {field: 'cpuUsed', title: 'CPU用户使用率'}
+                , {field: 'createTime', title: '创建时间', sort: true,width: 170}
+                , {field: 'onLine', title: '网络状态', templet: function (res) {
+                        return + res.onLine?'<p class="online">在线</p>':'<p class="offline">离线</p>';
+                    }}
+            ]]
+            , page: true
+        });
+
+        //头工具栏事件
+        layui.table.on('toolbar(test)', function (obj) {
+            var checkStatus = layui.table.checkStatus(obj.config.id);
+            switch (obj.event) {
+                case 'delete':
+                    var idarr=[];
+                    var data =  checkStatus.data;
+                    for(var i=0;i<data.length;i++){
+                        idarr.push(data[i].id)
+                    }
+                    if(idarr.length==0){
+                        layui.layer.msg("请先选中删除项！",{icon: 5});
+                    }else{
+                        parent.layui.layer.open({
+                            content: '确认删除吗？',
+                            btn: ['确认','取消'],
+                            yes: function(index, layero){
+                                parent.layer.close(index); //如果设定了yes回调，需进行手工关闭
+                                $.ajax({
+                                    url:readearth.host+'/agent/batchDel',
+                                    data:{"aIdArr":idarr.join(",")},
+                                    datatype:"json",
+                                    type:"delete",
+                                    success:function(res){
+                                        if(res.code==200){
+                                            initServerCharts();
+                                            layui.layer.msg("删除成功！",{icon: 6});
+                                        }else{
+                                            layui.layer.msg("删除失败！",{icon: 5})
+                                        }
+                                    },
+                                    error:function(){
+                                        layui.layer.msg("抱歉，系统异常！",{icon: 5})
+                                    }
+                                })
+                            }
+                        }); 
+                    }
+                break;
+            }
+        });
+    }
+</script>
+</html>
