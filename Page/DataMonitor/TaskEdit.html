@@ -35,6 +35,10 @@
         padding: 25px;
     }
 
+    .portpara .layui-form {
+        padding: 25px;
+    }
+
     .tip {
         background-color: white;
         height: 26px;
@@ -52,21 +56,12 @@
                 <div class="layui-card-header">监控任务</div>
                 <div class="layui-card-body" pad15="">
                     <div class="layui-form" lay-filter="form">
-                        <input type="hidden" name="userId" value="1">
-                        <div class="layui-form-item">
-                            <label class="layui-form-label">服务器IP</label>
-                            <div class="layui-input-inline">
-                                <input type="text" name="agentIp" class="layui-input" lay-verify="required">
-                            </div>
-                        </div>
+                        <input type="hidden" name="id" value="0">
+                        <input type="hidden" name="agentId" value="0">
                         <div class="layui-form-item">
                             <label class="layui-form-label"></span>负责人</label>
                             <div class="layui-input-inline">
                                 <select name="ntcUserId" lay-verify="" lay-search>
-                                    <option value="1">张三</option>
-                                    <option value="2">李四</option>
-                                    <option value="1">王五</option>
-                                    <option value="2">赵六</option>
                                 </select>
                             </div>
                         </div>
@@ -74,6 +69,13 @@
                             <label class="layui-form-label">立即执行</label>
                             <div class="layui-input-block">
                                 <input type="checkbox" name="execStat" lay-skin="switch" lay-text="是|否">
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">客户机名称</label>
+                            <div class="layui-input-inline">
+                                <select name="agentId" lay-search lay-filter="agentId">
+                                </select>
                             </div>
                         </div>
                         <div class="layui-form-item">
@@ -89,8 +91,8 @@
                         </div>
                         <div class="layui-form-item">
                             <div class="layui-input-block">
-                                <a class="layui-btn layui-btn-primary" href="ServerList.html">返回</a>
-                                <button class="layui-btn" lay-submit="">保存</button>
+                                <a class="layui-btn layui-btn-primary return-btn">返回</a>
+                                <button class="layui-btn" lay-submit="" lay-filter="all">保存</button>
                             </div>
                         </div>
                     </div>
@@ -115,6 +117,17 @@
                     </div>
                 </div>
                 <div class="layui-form-item">
+                    <label class="layui-form-label">数据库类型</label>
+                    <div class="layui-input-inline">
+                        <select name="dbTypeCode" lay-search lay-verify="required">
+                            <option value="1">MySql</option>
+                            <option value="2">Oracle</option>
+                            <option value="3">SqlServer</option>
+                            <option value="4">PostgreSQL</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="layui-form-item">
                     <label class="layui-form-label">用户名</label>
                     <div class="layui-input-inline">
                         <input type="text" name="userName" class="layui-input" lay-verify="required">
@@ -133,20 +146,8 @@
                     </div>
                 </div>
                 <div class="layui-form-item">
-                    <label class="layui-form-label">数据库类型</label>
-                    <div class="layui-input-inline">
-                        <select name="dbTypeCode" lay-verify="" lay-search>
-                            <option value="">请选择类型</option>
-                            <option value="1">MySql</option>
-                            <option value="2">Oracle</option>
-                            <option value="1">SqlServer</option>
-                            <option value="2">未知</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="layui-form-item">
                     <div class="layui-input-block">
-                        <a class="layui-btn layui-btn-warm">测试数据库连接</a>
+                        <a class="layui-btn layui-btn-warm" lay-submit="" lay-filter="db">测试数据库连接</a>
                     </div>
                 </div>
             </div>
@@ -157,20 +158,19 @@
             <div class="tip"><img src="../../Images/三角上.png"></div>
             <div class="layui-form" name="taskParam" lay-filter="portpara">
                 <div class="layui-form-item">
-                    <label class="layui-form-label">目标接口URL</label>
+                    <label class="layui-form-label">URL</label>
                     <div class="layui-input-inline">
-                        <input type="text" name="targetUrl" class="layui-input" lay-verify="required">
+                        <input type="text" name="targetUrl" class="layui-input" lay-verify="required" value="http://">
                     </div>
                 </div>
                 <div class="layui-form-item">
-                    <label class="layui-form-label"></span>数据发送方式</label>
+                    <label class="layui-form-label"></span>发送方式</label>
                     <div class="layui-input-inline">
                         <select name="reqMethod" lay-verify="" lay-search>
-                            <option value="">请选择类型</option>
-                            <option value="1">Post</option>
-                            <option value="2">Get</option>
-                            <option value="1">Delete</option>
-                            <option value="2">Put</option>
+                            <option value="Get">Get</option>
+                            <option value="Post">Post</option>
+                            <option value="Delete">Delete</option>
+                            <option value="Put">Put</option>
                         </select>
                     </div>
                 </div>
@@ -180,28 +180,47 @@
                         <input type="text" name="reqParam" class="layui-input">
                     </div>
                 </div>
+                <div class="layui-form-item">
+                    <div class="layui-input-block">
+                        <a class="layui-btn layui-btn-warm" lay-submit="" lay-filter="db">测试接口连接</a>
+                    </div>
+                </div>
             </div>
         </div>
     </script>
 </body>
 <script>
     //初始化方法
-    var taskType = GetQueryString("taskType");
     $(function () {
-        showEdit();
-        console.log($("[name='taskType']").val());
+        initAjaxLoad();
+        if(!getCookie("uId")){
+            window.location.href = "../User/Login.html"
+        }
+        initAjaxLoad();
+        initList();
+        var taskType = GetQueryString("taskType");
+        var id = GetQueryString("id");
+        $("[name='taskType']").val(taskType)
+        $("[name= 'ntcUserId']").val(getCookie("uId"))
+        if(id){
+            $("[name='id']").val(id)
+            showEdit(id,taskType);
+        }
+        
         if ($("[name='taskType']").val() == 5) {
+            $(".return-btn").attr("href","DBMonitor.html");
             $(".select-content").html($("#dbpara").html());
             $(".portpara").css("transition", "height 0S");
             $(".portpara").css("height", "0");
             $(".dbpara").css("transition", "height 1S");
             $(".dbpara").css("height", "430px");
         } else if ($("[name='taskType']").val() == 6) {
+            $(".return-btn").attr("href","PortMonitor.html");
             $(".select-content").html($("#portpara").html());
             $(".dbpara").css("transition", "height 0S");
             $(".dbpara").css("height", "0");
             $(".portpara").css("transition", "height 1S");
-            $(".portpara").css("height", "430px");
+            $(".portpara").css("height", "350px");
         } else {
             $(".dbpara").css("height", "0");
             $(".portpara").css("height", "0");
@@ -211,36 +230,153 @@
     });
 
     //渲染表单数据
-    function showEdit() {
-        layui.form.val("form", {
-            "taskType": taskType,
+    function showEdit(id,taskType) {
+        if(taskType==tkType.db){
+            $.getJSON(readearth.host+"/task/details",{tId:id},function(res){
+                if(res.code==200){
+                    var data = res.data;
+                    var dbdata = JSON.parse(data.taskParam)
+                    layui.form.val("form", {
+                        "taskType": taskType,
+                        "ntcUserId": data.ntcUserId,
+                        "execStat": data.execStat,
+                        "ip": dbdata.ip,
+                        "port": dbdata.port,
+                        "dbTypeCode": dbdata.dbTypeCode,
+                        "userName": dbdata.userName,
+                        "password": dbdata.password,
+                        "dbName": dbdata.dbName
+                    })
+                }
+            })
+        }else{
+            $.getJSON(readearth.host+"/task/details",{tId:id},function(res){
+                if(res.code==200){
+                    var data = res.data;
+                    var portdata = JSON.parse(data.taskParam)
+                    layui.form.val("form", {
+                        "taskType": taskType,
+                        "ntcUserId": data.ntcUserId,
+                        "execStat": data.execStat,
+                        "targetUrl": portdata.targetUrl,
+                        "reqMethod": portdata.reqMethod,
+                        "reqParam": portdata.reqParam,
+                    })
+                }
+            })
+        }
+        
+        
+    }
+
+    function initList(){
+        $.getJSON(readearth.host+"/user/list",function(res){
+            if(res.code == 200){
+                var html = "";
+                $.each(res.data,function(i,item){
+                    console.log(i)
+                    html += '<option value="'+item.id+'">'+item.userName+'</option>' ;
+                    $("[name='ntcUserId']").append(html)
+                })
+                $("[name='ntcUserId']").val(getCookie("uId"))
+            }
+            layui.form.render();
+        })
+        $.getJSON(readearth.host+"/agent/all",function(res){
+            if(res.code==200){
+                var html = "";
+                $.each(res.data,function(i,item){
+                    console.log(res.data)
+                    html += '<option value="'+item.id+'">'+item.agentName+'</option>' ;
+                    
+                })
+                $("[name='agentId']").append(html)
+            }
+            layui.form.render();
         })
     }
 
     //表单的事件
     function formEvent() {
-        layui.form.on('submit()', function (data) {
-            data.field.taskParam = layui.form.val("dbpara")
-            data.field.execStat = data.field.execStat ? true : false;
-            console.log(data.field)
-            // $.ajax({
-            //     url: readearth.host+ "/task/add",
-            //     data: JSON.stringify(data.field),
-            //     dataType:"json",
-            //     type: 'post',
-            //     contentType: "application/json",
-            //     success: function(res) {
-            //         if (res.code!=200)
-            //             parent.layui.layer.msg('生成任务成功!');
-            //         else {
-            //             parent.layui.layer.msg('生成任务失败!');
-            //             location.href = "ServerList.html";
-            //         }
-            //     },
-            //     error: function() {
-            //         parent.layui.layer.msg("抱歉，系统异常！");
-            //     }
-            // });
+        layui.form.on('submit(all)', function (data) {
+            
+            if($("[name='taskType']").val()==tkType.db){
+                data.field.execStat = data.field.execStat ? true : false;
+                data.field.taskParam = JSON.stringify(layui.form.val("dbpara"))
+            }else{
+                data.field.execStat = data.field.execStat ? true : false;
+                data.field.taskParam = JSON.stringify(layui.form.val("portpara"))
+            }
+            var method = "update";
+            var type = "put"
+            if( $("[name='id']").val() == 0){
+                method = "add";
+                type = "post"
+            }
+            $.ajax({
+                url: readearth.host+ "/task/"+method,
+                data: JSON.stringify(data.field),
+                dataType:"json",
+                type: type,
+                contentType: "application/json",
+                success: function(res) {
+                    if (res.code!=200){
+                        if(res.msg == "任务已存在！"){
+                            parent.layui.layer.msg(res.msg);
+                        }else{
+                            parent.layui.layer.msg('保存失败!');
+                        }
+                        
+                    }
+                    else {
+                        parent.layui.layer.msg('保存成功!');
+                        if($("[name='taskType']").val()==tkType.db)
+                            location.href = "DBMonitor.html";
+                        else
+                            location.href = "PortMonitor.html";
+                    }
+                },
+                error: function() {
+                    parent.layui.layer.msg("抱歉，系统异常！");
+                }
+            });
+            return false; //阻止表单跳转。如果需要表单跳转，去掉这段即可。
+        });
+
+        layui.form.on('submit(db)', function (data) {
+            var index;
+            var method = 'dbConn'
+            if($("[name='taskType']").val()==tkType.conn){
+                data.field.agentId = layui.form.val("form").agentId
+                data.field.taskType = $("[name='taskType']").val()
+                data.field.taskParam = JSON.stringify(data.field)
+                method = 'conn'
+            }
+            $.ajax({
+                url: readearth.host+ "/resource/test/"+method,
+                data: JSON.stringify(data.field),
+                dataType:"json",
+                type: 'post',
+                contentType: "application/json",
+                success: function(res) {
+                    parent.layer.close(index)
+                    if(res.code==200){
+                        if (res.data.connStat==1)
+                            parent.layui.layer.msg('连接成功!');
+                        else
+                        parent.layui.layer.msg('连接失败!'+res.data.connInfo);
+                    }else {
+                        parent.layui.layer.msg('接口异常，连接失败!');
+                    }
+                    
+                },
+                beforeSend:function(){
+                    index = parent.layer.load(0)
+                },
+                error: function() {
+                    parent.layui.layer.msg("抱歉，系统异常！");
+                }
+            });
             return false; //阻止表单跳转。如果需要表单跳转，去掉这段即可。
         });
     }

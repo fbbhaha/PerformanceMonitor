@@ -5,6 +5,7 @@ body {
 .index-title {
     height: 60px;
     width: 250px;
+    transition: width 0.5S;
     font-size: 20px;
     text-align: center;
     line-height: 60px;
@@ -14,7 +15,9 @@ body {
 
 .index-icon {
     width: 100px;
-    padding: 20px 20px;
+    height: 60px;
+    line-height: 60px;
+    padding: 0 20px;
     display: flex;
     justify-content: space-around;
 }
@@ -24,9 +27,37 @@ body {
     height: calc(100vh - 60px);
 }
 iframe{
-    height: calc(100% - 60px);
-    width: calc(100% - 250px);
-    padding: 20px 20px 0;
+    flex: 1;
+    padding: 20px 0 0 20px ;
+    height: calc(100% - 40px);
+}
+.main-footer{
+    position: absolute;
+    bottom: 0;
+    left: 250px;
+    transition: left 0.5S;
+}
+.layuiadmin-card-header-auto {
+    padding-top: 15px;
+    padding-bottom: 15px;
+}
+.refresh{
+    width: 50px;
+    color: white; 
+    position: absolute; 
+    right: 120px;
+    background-color: #393D49;
+    border-radius:10px;
+    text-align: center;
+}
+.return{
+    width:50px;
+    color: white; 
+    position: absolute; 
+    right: 50px;
+    background-color: #009688;
+    border-radius:10px;
+    text-align: center;
 }
 .servertable{
     padding: 10px;
@@ -57,6 +88,9 @@ iframe{
     font-size: 16px;
     margin-top: 10px;
 }
+.layerselect{
+    padding: 20px;
+}
 .history{
     background-color: #f6f6f6;
     padding: 5px 10px;
@@ -70,7 +104,7 @@ iframe{
     background-color: #009688;
     text-align: center;
     color: white;
-    margin-left: 20px;
+
 }
 .offline{
     width: 40px;
@@ -78,5 +112,52 @@ iframe{
     background-color: #ff5722;
     text-align: center;
     color: white;
-    margin-left: 20px;
+
+}
+
+.do{
+    width: 80px;
+    border-radius: 3px;
+    background-color: #009688;
+    text-align: center;
+    color: white;
+
+}
+.undo{
+    width: 80px;
+    border-radius: 3px;
+    background-color: #ff5722;
+    text-align: center;
+    color: white;
+
+}
+
+
+.state1{
+    width: 100px;
+    border-radius: 3px;
+    background-color: #ff5722;
+    text-align: center;
+    color: white;
+}
+.state2{
+    width: 100px;
+    border-radius: 3px;
+    background-color: #FFB800;
+    text-align: center;
+    color: white;
+}
+.state3{
+    width: 100px;
+    border-radius: 3px;
+    background-color: #009688;
+    text-align: center;
+    color: white;
+}
+.state4{
+    width: 100px;
+    border-radius: 3px;
+    background-color: gray;
+    text-align: center;
+    color: white;
 }

@@ -10,56 +10,102 @@
     <link href="../Styles/Site.css" rel="stylesheet" type="text/css"/>
     <script src="../Scripts/jquery/jquery-1.11.2.min.js"></script>
     <script src="../Scripts/layui/layui.js"></script>
+    <script src="../Scripts/util.js"></script>
 </head>
 <body>
+
 <!--顶部导航栏-->
-<div class="layui-row" style="background-color: white">
-    <div class="layui-col-md2">
-        <div class="index-title">
-            性能检测平台
+<div class="layui-row" style="background-color: white;display: flex;">
+        <div class="index-title"><img src="../Images/性能.png" style="margin-right: 5px">
+            <span>计算资源监控系统</span>
         </div>
-    </div>
-    <div class="layui-col-md1 layui-col-lg-offset9">
+        <a id="fold" style="height: 60px; line-height: 60px;margin-left: 20px;" > <img src="../Images/目录.png"></a>
+    
+    <div style="flex:1; display: flex; justify-content: flex-end;" >
         <div class="index-icon">
             <a href=""> <img src="../Images/个人中心.png"></a>
-            <a href="User/Login.html"> <img src="../Images/错误.png"></a>
+            <a id="quit" href="javascript:;"> <img src="../Images/错误.png"></a>
         </div>
     </div>
+        
 </div>
 <!--侧边导航栏-->
 <div class="index-main">
     <div class="layui-bg-black">
-        <ul class="layui-nav layui-nav-tree" lay-filter="test" style="width: 250px;">
+        <ul class="layui-nav layui-nav-tree" lay-filter="test" style="width: 250px; transition: width 0.5S;">
             <li class="layui-nav-item layui-nav-itemed">
-                <a href="javascript:;"><img src="../Images/仪表盘.png" style="margin-right: 15px">仪表盘</a>
+                <a href="javascript:;"><img src="../Images/仪表盘.png" style="margin-right: 15px"><span>仪表盘</span></a>
                 <dl class="layui-nav-child">
-                    <dd><a href="Server/MonitorIndex.html" target="mainiframe" class="layui-this">监控概要</a></dd>
-                    <dd><a href="Server/ServerList.html" target="mainiframe">服务器列表</a></dd>
-                    <dd><a href="">进程列表</a></dd>
+                    <dd><a href="Server/MonitorIndex.html" target="mainiframe" class="layui-this"><img src="../Images/圆点.png" style="margin-right: 15px"><span>监控概要</span></a></dd>
+                    <dd><a href="Server/ServerList.html" target="mainiframe"><img src="../Images/圆点.png" style="margin-right: 15px"><span>服务器列表</span></a></dd>
                 </dl>
             </li>
-            <li class="layui-nav-item">
-                <a href="javascript:;">数据监控</a>
+            <li class="layui-nav-item layui-nav-itemed">
+                <a href="javascript:;"><img src="../Images/监控.png" style="margin-right: 15px"><span>数据监控</span></a>
                 <dl class="layui-nav-child">
-                    <dd><a href="DataMonitor/DBMonitor.html" target="mainiframe">数据库监控</a></dd>
-                    <dd><a href="DataMonitor/PortMonitor.html" target="mainiframe">服务器接口监控</a></dd>
+                    <dd><a href="DataMonitor/DBMonitor.html" target="mainiframe"><img src="../Images/圆点.png" style="margin-right: 15px"><span>数据库监控</span></a></dd>
+                    <dd><a href="DataMonitor/PortMonitor.html" target="mainiframe"><img src="../Images/圆点.png" style="margin-right: 15px"><span>服务器接口监控</span></a></dd>
+                    <dd><a href="DataMonitor/ProgressMonitor.html" target="mainiframe"><img src="../Images/圆点.png" style="margin-right: 15px"><span>进程监控</span></a></dd>
                 </dl>
             </li>
-            <li class="layui-nav-item"><a href="">Redis健康检测</a></li>
-            <li class="layui-nav-item"><a href="">服务器健康检测</a></li>
-            <li class="layui-nav-item"><a href="">系统信息</a></li>
-            <li class="layui-nav-item"><a href="DataMonitor/MailForecast.html" target="mainiframe">邮件预警</a></li>
-            <li class="layui-nav-item"><a href="">帮助</a></li>
+            <li class="layui-nav-item"><a href="javascript:;"><img src="../Images/健康.png" style="margin-right: 15px"><span>Redis健康检测</span></a></li>
+            <li class="layui-nav-item"><a href="DataMonitor/MailForecast.html" target="mainiframe"><img src="../Images/邮件.png" style="margin-right: 15px"><span>邮件预警</span></a></li>
         </ul>
     </div>
     <!--右侧主页面-->
     <iframe src="Server/MonitorIndex.html" name="mainiframe" frameborder="0"></iframe>
+    <footer class="main-footer">
+        <strong>Copyright ©2019-2020 <a target="_blank" href="http://www.readearth.com">www.readearth.com</a></strong>版权所有.
+    </footer>
 </div>
+
 <script>
-    layui.use(['element','layer'],function () {
+    var sign = 0;
+    layui.use(['element','layer','table'],function () {
+        initAjaxLoad();
+        if(!getCookie("uId")){
+            window.location.href = "../Page/User/Login.html"
+        }
         var element = layui.element;
+        var table = layui.table;
         var layer = layui.layer;
+        $("#quit").click(function(){
+            layui.layer.open({
+                title: '登出',
+                btn: ['确定','取消'],
+                content: "确认退出吗？",
+                yes: function(){
+                    $.post(readearth.host+"/user/loginOut", function(res){
+                        if(res.code == 200)
+                            window.location.href = "/Page/User/Login.html"
+                        removeCookie("uId");
+                    })
+                }
+            })
+            
+            
+        })
+        
+        $("#fold").click(function(){
+            if(sign==1){
+                sign = 0; 
+                $(".main-footer").css("left","250px")
+                $(".index-main").find(".layui-nav").css("width","250px")
+                $(".index-title").css("width","250px")
+                $(".index-title").find("span").css("display","inline");
+                $(".index-main").find("span").css("display","inline");
+            }else{
+                sign = 1;
+                $(".main-footer").css("left","80px");
+                $(".index-title").find("span").css("display","none");
+                $(".index-title").css("width","80px")
+                $(".index-main").find("span").css("display","none");
+                $(".index-main").find(".layui-nav").css("width","80px")
+            }
+        })
+        
     })
+
 </script>
 </body>
 </html>

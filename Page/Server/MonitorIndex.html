@@ -14,6 +14,7 @@
 </head>
 <style>
     .function-modules{
+        width: 80%;
         display: flex;
         justify-content: space-around;
         flex-flow: row wrap;
@@ -22,7 +23,7 @@
     .modules-item{
         width: 360px;
         height: 150px;
-        border-radius: 5px;
+        border-radius: 10px;
         background-color: royalblue;
         margin-top: 20px;
     }
@@ -44,6 +45,8 @@
         display: flex;
         justify-content: center;
         height: 30px;
+        border-bottom-right-radius: 10px;
+        border-bottom-left-radius: 10px;
         margin-top: 10px;
     }
     .more .more-item{
@@ -51,7 +54,21 @@
         color: white;
         margin-right: 5px;
     }
+    .tips{
+        width: 20%;
+        background-color: white;
+        position: absolute;
+        top:20px;
+        right: 10px;
+        border-radius: 5px;
+        height: 500px;
+    }
+    .tips-title{
+        font-size: 15px;
+        padding: 10px 15px 0;
+    }
 </style>
+
 <boby>
 <div class="function-modules">
     <div class="modules-item">
@@ -59,41 +76,40 @@
         <div class="name">监控服务器总数</div>
         <div class="more"><a class="more-item" href="ServerList.html">更多<img src="../../Images/右箭头.png"></a></div>
     </div>
-    <div class="modules-item">
+    <div class="modules-item" style="background-color: #FFB800;">
         <div class="num">3</div>
         <div class="name">监控服务器总数</div>
-        <div class="more"><a class="more-item" href="ServerList.html">更多<img src="../../Images/右箭头.png"></a></div>
+        <div class="more"><a class="more-item" href="ServerList.html" >更多<img src="../../Images/右箭头.png"></a></div>
+    </div>
+    <div class="modules-item" style="background-color: #FF5722;">
+        <div class="num">3</div>
+        <div class="name">监控服务器总数</div>
+        <div class="more"><a class="more-item" href="ServerList.html" >更多<img src="../../Images/右箭头.png"></a></div>
     </div>
     <div class="modules-item">
         <div class="num">3</div>
         <div class="name">监控服务器总数</div>
         <div class="more"><a class="more-item" href="ServerList.html">更多<img src="../../Images/右箭头.png"></a></div>
     </div>
-    <div class="modules-item">
+    <div class="modules-item" style="background-color: #FFB800;">
         <div class="num">3</div>
         <div class="name">监控服务器总数</div>
-        <div class="more"><a class="more-item" href="ServerList.html">更多<img src="../../Images/右箭头.png"></a></div>
+        <div class="more"><a class="more-item" href="ServerList.html" >更多<img src="../../Images/右箭头.png"></a></div>
     </div>
-    <div class="modules-item">
+    <div class="modules-item" style="background-color: #FF5722;">
         <div class="num">3</div>
         <div class="name">监控服务器总数</div>
-        <div class="more"><a class="more-item" href="ServerList.html">更多<img src="../../Images/右箭头.png"></a></div>
-    </div>
-    <div class="modules-item">
-        <div class="num">3</div>
-        <div class="name">监控服务器总数</div>
-        <div class="more"><a class="more-item" href="ServerList.html">更多<img src="../../Images/右箭头.png"></a></div>
-    </div>
-    <div class="modules-item">
-        <div class="num">3</div>
-        <div class="name">监控服务器总数</div>
-        <div class="more"><a class="more-item" href="ServerList.html">更多<img src="../../Images/右箭头.png"></a></div>
-    </div>
-    <div class="modules-item">
-        <div class="num">3</div>
-        <div class="name">监控服务器总数</div>
-        <div class="more"><a class="more-item" href="ServerList.html">更多<img src="../../Images/右箭头.png"></a></div>
+        <div class="more"><a class="more-item" href="ServerList.html" >更多<img src="../../Images/右箭头.png"></a></div>
     </div>
 </div>
+<div class="tips">
+    <p class="tips-title">待处理事项</p><hr>
+</div>
 </boby>
+<script>
+    initAjaxLoad();
+    if(!getCookie("uId")){
+        window.location.href = "../User/Login.html"
+    }
+</script>
 </html>

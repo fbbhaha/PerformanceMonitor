@@ -13,6 +13,11 @@
     <script src="../../Scripts/util.js"></script>
 </head>
 <body>
+    <style>
+        .layer-select{
+            padding: 10px 0;
+        }    
+    </style>
 <div class="servertable">
     <p style="font-size: 16px;">服务器列表</p>
     <hr>
@@ -29,14 +34,18 @@
     <a class="layui-btn layui-btn-xs" href="ServerEdit.html?aId={{d.id}}" target="mainiframe">编辑</a>
     <a class="layui-btn layui-btn-xs layui-btn-normal" href="ServerDetail.html?id={{d.id}}" target="mainiframe">系统信息</a>
     <a class="layui-btn layui-btn-danger layui-btn-xs" href="ServerDetail.html?id={{d.id}}&&#cpu">图表</a>
-</script>
-<script type="text/html" id="task">
-    <a class="layui-btn layui-btn-xs layui-btn-warm" href="TaskEdit.html?id={{d.agentIp}}" target="mainiframe">添加任务</a>
+    <a class="layui-btn layui-btn-xs layui-btn-warm " lay-event="update">更新任务</a>
 </script>
 </body>
 <script>
     $(function () {
-        initServerCharts()
+        initAjaxLoad();
+        if(!getCookie("uId")){
+            window.location.href = "../User/Login.html"
+        }
+        console.log(readearth.uId)
+        
+        initServerCharts();
     });
 
     function initServerCharts(){
@@ -54,20 +63,22 @@
             }
             , cols: [[
                 {type: 'checkbox', fixed: 'left'}
-                , {field: 'id', title: 'ID'}
+                , {type: 'numbers', fixed: 'left'}
                 , {field: 'agentName', title: '服务器名'} 
                 , {field: 'agentIp', title: '服务器IP'}
                 , {field: 'agentPort', title: '端口号'}
                 , {field: 'groupId', title: '分组ID'}
-                , {field: 'userId', title: '创建者ID'}
-                , {field: 'cpuSys', title: 'CPU系统使用率'}
-                , {field: 'cpuUsed', title: 'CPU用户使用率'}
+                , {field: 'creUser', title: '创建者', templet: function(res){
+                    return res.creUser.userName;
+                }}
+                , {field: 'cpuSys', title: 'CPU使用率',templet: function(res){
+                    return (res.cpuSys+res.cpuUsed).toFixed(2)+'%';
+                }}
                 , {field: 'createTime', title: '创建时间', sort: true,width: 170}
-                , {field: 'onLine', title: '网络状态', templet: function (res) {
+                , {field: 'onLine', title: '网络状态',templet: function (res) {
                         return + res.onLine?'<p class="online">在线</p>':'<p class="offline">离线</p>';
                     }}
-                , {fixed: 'right', title: '操作', toolbar: '#barDemo', width: 190}
-                , {fixed: 'right', title: '任务', toolbar: '#task'}
+                , {fixed: 'right', title: '操作', toolbar: '#barDemo', width: 270}
             ]]
             , page: true
         });
@@ -113,6 +124,82 @@
                 break;
             }
         });
+
+        //行工具栏事件
+        layui.table.on('tool(test)', function (obj) {
+            var tabledata = layui.table.cache.test;
+            if (obj.event=="update"){
+                var data = obj.data;
+                var forecastItem = ["","CPU监控","内存监控","系统监控","磁盘监控"]; 
+                $.ajaxSettings.async = false;
+                var html = '<div class="layui-form" lay-filter="serverlayerform" style = "padding:15px 0"><div class="layui-form-item">\n' +
+                '                       <label class="layui-form-label">选择负责人</label>\n' +
+                '                       <div class="layui-input-inline">\n' +
+                '                           <select name="ntcUserId">\n';
+                $.getJSON(readearth.host+"/user/list",function(res){
+                    if(res.code == 200){
+                        $.each(res.data,function(i,item){
+                            html += '<option value="'+item.id+'">'+item.userName+'</option>' ;
+                        })
+                    }
+                })
+                html += '</select></div></div>';
+                $.getJSON(readearth.host+"/task/page",{page:1,limit:100,aId:data.id,taskType:"1,2,3"},function (res) {
+                    if (res.code==200){
+                        $.each(res.data.records,function(i,item){
+                            var check = 'checked=""'
+                            check = item.execStat?check:""
+                            html += '<div class="layui-form" lay-filter="itemform'+i+'">'+
+                '                    <div class="layui-form-item layer-select">\n' +
+                '                        <input type="hidden" name="id" value='+item.id+'>'+
+                '                       <label class="layui-form-label">'+forecastItem[item.type.code]+'</label>\n' +
+                '                       <div class="layui-input-block">\n' +
+                '                           <input type="checkbox" name="execStat" title="开启" '+check+'>\n' +
+                '                       </div>\n' +
+                '                    </div></div>';
+                        });
+                        html += ' </div>'; 
+                    }
+                });
+                parent.layui.layer.open({
+                    type: 1,
+                    area: ['400px', '350px'],
+                    title: '任务要素编辑',
+                    btn: ['确定','取消'],
+                    skin: "layui-layer-lan",
+                    content: html,
+                    success:function(){
+                        parent.layui.form.render();
+                    },
+                    yes:function (index) {
+                        var ntcUserId = parent.$("[name='ntcUserId']").val();
+                        for(var i = 0;i<3;i++){
+                            var formdata = parent.layui.form.val("itemform"+i)
+                            var execStat = formdata.execStat?true:false;
+                            $.ajax({
+                                url: readearth.host+ "/task/update",
+                                data: JSON.stringify({id:formdata.id, ntcUserId:ntcUserId, execStat:execStat, taskParam:null}),
+                                dataType:'json',
+                                type: 'put',
+                                contentType: "application/json",
+                                success: function(res){
+                                    parent.layer.close(index);
+                                    if(res.code==200){
+                                        parent.layui.layer.msg("更新成功！",{icon:6})
+                                    }else
+                                        parent.layui.layer.msg("更新失败！",{icon:5});
+                                    
+                                },
+                                error: function(){
+                                    parent.layui.layer.msg("抱歉，系统异常！",{icon:5})
+                                }
+                            })                          
+                        }   
+                    }
+                });
+            }
+        })
     }
+
 </script>
 </html>

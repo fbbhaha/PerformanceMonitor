@@ -14,7 +14,7 @@
 </head>
 <body>
 <div class="servertable">
-    <p style="font-size: 16px;">服务器列表</p>
+    <p style="font-size: 16px;">数据库监控任务列表</p>
     <hr>
     <table class="layui-hide" id="test" lay-filter="test"></table>
 </div>
@@ -22,19 +22,36 @@
 <script type="text/html" id="toolbarDemo">
     <div class="layui-btn-container">
         <a class="layui-btn layui-btn-sm" href="TaskEdit.html?taskType=5" target="mainiframe">新增任务</a>
-        <a class="layui-btn layui-btn-sm" lay-event="delete">删除任务</a>
+        <a class="layui-btn layui-btn-sm" lay-event="delSome">删除</a>
     </div>
 </script>
+<script type="text/html" id="barDemo">
+    <a class="layui-btn layui-btn-xs" href="TaskEdit.html?taskType=5&&id={{d.id}}" target="mainiframe">编辑</a>
+    <a class="layui-btn layui-btn-xs layui-btn-danger" lay-event="delete">删除</a>
+    <a class="layui-btn layui-btn-xs layui-btn-warm" lay-event="last">最近连接</a>
+</script>
+
+
+
 </body>
 <script>
     $(function () {
-        initServerCharts()
+        initAjaxLoad();
+        if(!getCookie("uId")){
+            window.location.href = "../User/Login.html"
+        }
+        initServerCharts();
     });
 
-    function initServerCharts(){
+
+    function initServerCharts(data){
+
         layui.table.render({
             elem: '#test'
-            , url: readearth.host + "/agent/list"
+            , url:readearth.host+'/task/page'
+            , where:{
+                taskType:'5'
+            }
             , toolbar: '#toolbarDemo' //开启头部工具栏，并为其绑定左侧模板
             , parseData: function (res) { //res 即为原始返回的数据
                 return {
@@ -46,27 +63,38 @@
             }
             , cols: [[
                 {type: 'checkbox', fixed: 'left'}
-                , {field: 'id', title: 'ID'}
-                , {field: 'agentName', title: '服务器名'} 
-                , {field: 'agentIp', title: '服务器IP'}
-                , {field: 'agentPort', title: '端口号'}
-                , {field: 'groupId', title: '分组ID'}
-                , {field: 'userId', title: '创建者ID'}
-                , {field: 'cpuSys', title: 'CPU系统使用率'}
-                , {field: 'cpuUsed', title: 'CPU用户使用率'}
-                , {field: 'createTime', title: '创建时间', sort: true,width: 170}
-                , {field: 'onLine', title: '网络状态', templet: function (res) {
-                        return + res.onLine?'<p class="online">在线</p>':'<p class="offline">离线</p>';
+                , {type: 'numbers', fixed: 'left'}
+                , {field: 'creUserId', title: '创建者', templet: function(res){
+                    return res.creUser.userName;
+                }}
+                , {field: 'ntcUserId', title: '负责人', templet: function(res){
+                    return res.ntcUser.userName;
+                }}
+                , {field: 'taskParam', title: '数据库IP', templet: function (res) {
+                    return  JSON.parse(res.taskParam).ip;
+                }}
+                , {field: 'taskParam', title: '数据库名称', templet: function (res) {
+                        return  JSON.parse(res.taskParam).dbName;
                     }}
+                , {field: 'taskParam', title: '数据库类型', templet: function (res) {
+                    var dbTypeArr = ['','MySql','Oracle','SqlServer','PostgreSQL']
+                    return  dbTypeArr[JSON.parse(res.taskParam).dbTypeCode];
+                }}
+                , {field: 'createTime', title: '任务创建时间'}
+                , {field: 'execStat', title: '执行情况', templet: function (res) {
+                    return res.execStat?'<p class="do">正在执行</p>':'<p class="undo">尚未执行</p>';
+                }}
+                , {fixed: 'right', title: '操作', toolbar: '#barDemo'}
             ]]
-            , page: true
+            ,page: true
         });
 
+
         //头工具栏事件
-        layui.table.on('toolbar(test)', function (obj) {
+        layui.table.on('toolbar()', function (obj) {
             var checkStatus = layui.table.checkStatus(obj.config.id);
             switch (obj.event) {
-                case 'delete':
+                case 'delSome':
                     var idarr=[];
                     var data =  checkStatus.data;
                     for(var i=0;i<data.length;i++){
@@ -81,8 +109,8 @@
                             yes: function(index, layero){
                                 parent.layer.close(index); //如果设定了yes回调，需进行手工关闭
                                 $.ajax({
-                                    url:readearth.host+'/agent/batchDel',
-                                    data:{"aIdArr":idarr.join(",")},
+                                    url:readearth.host+'/task/batchDel',
+                                    data:{"tIdArr":idarr.join(",")},
                                     datatype:"json",
                                     type:"delete",
                                     success:function(res){
@@ -103,6 +131,74 @@
                 break;
             }
         });
+
+
+        //行工具栏事件
+        layui.table.on('tool()', function (obj) {
+            var data =  obj.data;
+            switch (obj.event) {
+                case 'delete':
+                    parent.layui.layer.open({
+                        content: '确认删除吗？',
+                        btn: ['确认','取消'],
+                        yes: function(index, layero){
+                            parent.layer.close(index); //如果设定了yes回调，需进行手工关闭
+                            $.ajax({
+                                url:readearth.host+'/task/batchDel',
+                                data:{"tIdArr":data.id},
+                                datatype:"json",
+                                type:"delete",
+                                success:function(res){
+                                    if(res.code==200){
+                                        initServerCharts();
+                                        layui.layer.msg("删除成功！",{icon: 6});
+                                    }else{
+                                        layui.layer.msg("删除失败！",{icon: 5})
+                                    }
+                                },
+                                error:function(){
+                                    layui.layer.msg("抱歉，系统异常！",{icon: 5})
+                                }
+                            })
+                        }
+                        
+                    })  
+                    break;
+                case 'last':
+                parent.layui.layer.open({
+                        area: '550px',
+                        title: '最近连接',
+                        content: '<table class="layui-hide" id="lastTask"></table>'
+                    })
+                parent.layui.table.render({
+                    skin: 'line' //行边框风格
+                    ,even: true //开启隔行背景
+                    ,elem: '#lastTask'
+                    , url:readearth.host+'/resource/connInfo'
+                    , where:{
+                        tId: data.id
+                    }
+                    , parseData: function (res) { //res 即为原始返回的数据
+                        return {
+                            "code": res.code = 200 ? 0 : 1, //解析接口状态
+                            "msg":  "",//解析数据长度
+                            "data": res.data, //解析数据列表
+                        };
+                    }
+                    , cols: [[
+                        {type: 'numbers', fixed: 'left'}
+                        , {field: 'createTime', title: '创建时间'}
+                        , {field: 'connStat', title: '结果', templet: function(res){
+                            return res.connStat==1?"成功":"失败";
+                        }}
+                        , {field: 'connInfo', title: '返回信息'}
+                    ]]
+                });
+                break;
+            }
+        });
+
+        
     }
 </script>
 </html>

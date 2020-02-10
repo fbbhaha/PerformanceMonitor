@@ -19,51 +19,60 @@
     }
     body{
         height: 100%;
-        background-color: #393D49;
-        display: flex;
+        background-color: #263238;
+        /* display: flex;
         justify-content: center;
         align-items: center;
-        flex-direction: column;
+        flex-direction: column; */
+    }
+    .login{
+        padding: 200px 0 0;
     }
     .login-name{
-        font-size: 30px;
+        font-size: 20px;
         color: white;
-        margin-bottom: 30px;
+        width: 360px;
+        text-align: center;
+        margin: auto;
     }
     .login-center{
+        margin:20px auto;
         border-radius: 10px;
         background-color: white;
-        width: 400px;
-        height: 300px;
-        padding: 30px 20px;
+        width: 320px;
+        height: 251px;
+        padding: 10px 20px 30px;
     }
     .login-center input{
         border:none;
         height: 40px;
         border-bottom: 2px solid gray;
         margin: 20px 0;
-        font-size: 18px;
+        font-size: 15px;
         width: 100%;
-        border-radius: 6px;
     }
     .login-center button{
-        margin: 20px 0;
+        margin: 20px 0 0;
     }
-    </style>
+</style>
 <body>
-    <div class="login-name">性能检测平台</div>
-    <div class="login-center">
-        <form class="layui-form">
-            <input type="text" id="userName" placeholder="输入账号" >
-            <input type="password" id="password" placeholder="输入密码">
-            <button type="button" class="layui-btn layui-btn-normal layui-btn-fluid" id="sub">登录</button>
-        </form>
+    <div class="login">
+        <div class="login-name"><img src="../../Images/性能.png" style="margin-right: 15px">计算资源监控系统</div>
+        <div class="login-center">
+            <form class="layui-form">
+                <input type="text" id="userName" placeholder="请输入账号" >
+                <input type="password" id="password" placeholder="请输入密码">
+                <button type="button" class="layui-btn layui-btn-normal layui-btn-fluid" id="sub">登录</button>
+            </form>
+        </div>
     </div>
+    
 </body>
 <script>
     var username = $("#userName");
     var password = $("#password");
     $("#sub").click(function(){
+        initAjaxLoad();
         if(username.val().trim()==""){
             username.focus();
             username.css("border-bottom","2px solid red");
@@ -77,12 +86,14 @@
         }else{
             $.ajax({
                 url:readearth.host+"/user/login",
-                data:{"userName":username.val(),"password":password.val()},
+                data:JSON.stringify({"userName":username.val(),"password":password.val()}),
                 dataType:'Json',
+                contentType: "application/json",
                 type:"post",
                 success:function(res){
                     if(res.code == 200){
-                        layer.msg('登录成功，请稍等...', {icon: 16},function(){
+                        setCookie("uId",res.data.id,1);
+                        layer.msg('登录成功，请稍等...', {icon: 16,time:1000},function(){
                             window.location.href = "../index.html"
                         });
                     }else{

@@ -63,7 +63,10 @@
     //初始化方法
     var id = GetQueryString("aId");
     $(function() {
-        //initAjaxLoad();
+        initAjaxLoad();
+        if(!getCookie("uId")){
+            window.location.href = "../User/Login.html"
+        }
         formEvent();
         if (id) {
             showEdit(id);
