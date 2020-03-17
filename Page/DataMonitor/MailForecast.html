@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>性能检测平台</title>
+    <title>计算资源监控系统</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <link rel="icon" href="" type="image/x-icon"/>
@@ -25,11 +25,10 @@
 </script>
 </body>
 <script>
-    var currpage = 1;
     $(function () {
         initAjaxLoad();
         if(!getCookie("uId")){
-            window.location.href = "../User/Login.html"
+            parent.window.location.href = "../User/Login.html"
         }
         initServerCharts();
     });
@@ -40,8 +39,8 @@
             , url: readearth.host + "/alarm/page"
             , where: {
                 uId: getCookie("uId"),
-                page: currpage,
             }
+            ,limit: 15
             , parseData: function (res) { //res 即为原始返回的数据
                 return {
                     "code": res.code = 200 ? 0 : 1, //解析接口状态
@@ -52,25 +51,21 @@
             }
             , cols: [[
                 {type: 'numbers', fixed: 'left'}
-                , {field: 'ntcUser', title: '接收人', templet: function(res){
+                , {field: 'ntcUser', title: '接收人', minWidth:87, templet: function(res){
                     return res.ntcUser.userName
                 }} 
                 , {field: 'alarmInfo', title: '发送内容', width:950, templet: function(res){
                     var reg = new RegExp("<br/>","g");
-                    
                     return res.alarmInfo.replace(reg," ");
                 }}
                 , {field: 'createTime', title: '创建时间', sort: true,width: 170}
-                , {field: 'state', title: '当前状态',templet: function (res) {
+                , {field: 'state', title: '当前状态', minWidth:132,templet: function (res) {
                     return '<p class="state'+res.state.code+'">'+res.state.desc+'</p>';
                 }}
-                , {fixed: 'right', title: '操作', toolbar: '#barDemo'}
+                , {fixed: 'right', title: '操作', toolbar: '#barDemo', minWidth:91}
 
             ]]
             , page: true
-            ,done: function(res, curr, count){
-                currpage = curr
-            }
         });
 
         layui.table.on('tool()', function (obj) {

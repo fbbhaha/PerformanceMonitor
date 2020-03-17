@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>性能检测平台</title>
+    <title>计算资源监控系统</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <link rel="icon" href="" type="image/x-icon"/>
@@ -10,11 +10,13 @@
     <link href="../../Styles/Site.css" rel="stylesheet" type="text/css"/>
     <script src="../../Scripts/jquery/jquery-1.11.2.min.js"></script>
     <script src="../../Scripts/layui/layui.all.js"></script>
+    <script src="../../Scripts/echarts/echarts.js"></script>
     <script src="../../Scripts/util.js"></script>
 </head>
 <style>
     .function-modules{
-        width: 80%;
+        width: 75%;
+        min-height: 140px;
         display: flex;
         justify-content: space-around;
         flex-flow: row wrap;
@@ -22,7 +24,7 @@
     }
     .modules-item{
         width: 360px;
-        height: 150px;
+        height: 120px;
         border-radius: 10px;
         background-color: royalblue;
         margin-top: 20px;
@@ -40,20 +42,6 @@
         margin-left: 10px;
         height: 30px;
     }
-    .modules-item .more{
-        background-color: rgba(	0,0,0, 0.2);
-        display: flex;
-        justify-content: center;
-        height: 30px;
-        border-bottom-right-radius: 10px;
-        border-bottom-left-radius: 10px;
-        margin-top: 10px;
-    }
-    .more .more-item{
-        font-size: 20px;
-        color: white;
-        margin-right: 5px;
-    }
     .tips{
         width: 20%;
         background-color: white;
@@ -70,46 +58,205 @@
 </style>
 
 <boby>
-<div class="function-modules">
-    <div class="modules-item">
-        <div class="num">3</div>
-        <div class="name">监控服务器总数</div>
-        <div class="more"><a class="more-item" href="ServerList.html">更多<img src="../../Images/右箭头.png"></a></div>
+    <div class="function-modules">
+        <div class="modules-item">
+            <div class="num" id="userNum">3</div>
+            <div class="name">用户数</div>
+        </div>
+        <div class="modules-item" style="background-color: #FFB800;">
+            <div class="num" id="serverNum">3</div>
+            <div class="name">服务器数</div>
+        </div>
+        <div class="modules-item" style="background-color: #FF5722;">
+            <div class="num" id="forecastNum">3</div>
+            <div class="name">预警数</div>
+    <!--        <div class="more"><a class="more-item" href="../DataMonitor/MailForecast.html" >更多<img src="../../Images/右箭头.png"></a></div>-->
+        </div>
     </div>
-    <div class="modules-item" style="background-color: #FFB800;">
-        <div class="num">3</div>
-        <div class="name">监控服务器总数</div>
-        <div class="more"><a class="more-item" href="ServerList.html" >更多<img src="../../Images/右箭头.png"></a></div>
+    <div class="main-data">
+        <div style="background-color: white;padding: 10px;margin: 20px 0;width: 75%">
+            <div id="cpu" style="height: 400px;width: 100%"></div>
+        </div>
+        <div style="width: 75%;background-color: white;padding: 10px">
+            <p style="font-Size: 15px;font-Weight: bolder;color: #333 ;margin: 0 10px 20px">服务器数据</p>
+            <table class="layui-hide" id="serverTable" lay-filter="test"></table>
+        </div>
     </div>
-    <div class="modules-item" style="background-color: #FF5722;">
-        <div class="num">3</div>
-        <div class="name">监控服务器总数</div>
-        <div class="more"><a class="more-item" href="ServerList.html" >更多<img src="../../Images/右箭头.png"></a></div>
+    <div class="tips">
+        <p class="tips-title">待处理事项</p><hr>
     </div>
-    <div class="modules-item">
-        <div class="num">3</div>
-        <div class="name">监控服务器总数</div>
-        <div class="more"><a class="more-item" href="ServerList.html">更多<img src="../../Images/右箭头.png"></a></div>
-    </div>
-    <div class="modules-item" style="background-color: #FFB800;">
-        <div class="num">3</div>
-        <div class="name">监控服务器总数</div>
-        <div class="more"><a class="more-item" href="ServerList.html" >更多<img src="../../Images/右箭头.png"></a></div>
-    </div>
-    <div class="modules-item" style="background-color: #FF5722;">
-        <div class="num">3</div>
-        <div class="name">监控服务器总数</div>
-        <div class="more"><a class="more-item" href="ServerList.html" >更多<img src="../../Images/右箭头.png"></a></div>
-    </div>
-</div>
-<div class="tips">
-    <p class="tips-title">待处理事项</p><hr>
-</div>
 </boby>
 <script>
-    initAjaxLoad();
+    var cpu = echarts.init(document.getElementById('cpu'));
     if(!getCookie("uId")){
-        window.location.href = "../User/Login.html"
+        parent.window.location.href = "../User/Login.html"
+    }
+    $(function () {
+        $.ajaxSetup({
+            xhrFields: {
+                withCredentials: true
+            },
+            crossDomain: true,
+        });
+        initSum();
+        initTable();
+    });
+    function initSum() {
+        $.getJSON(readearth.host+"/user/list",function(res){
+            if(res.code == 200){
+                $("#userNum").html(res.data.length);
+            }
+        });
+        $.getJSON(readearth.host+"/agent/all",function(res){
+            if(res.code==200){
+                $("#serverNum").html(res.data.length);
+            }
+        });
+        $.getJSON(readearth.host + "/alarm/page",{page:1,uId:getCookie("uId"),limit:10},function(res){
+            if(res.code==200){
+                $("#forecastNum").html(res.data.total);
+            }
+        })
+    }
+    function initTable() {
+        layui.table.render({
+            elem: '#serverTable'
+            , url: readearth.host + "/agent/list"
+            ,skin: 'line' //行边框风格
+            ,even: true //开启隔行背景
+            ,page: false
+            , parseData: function (res) { //res 即为原始返回的数据
+                return {
+                    "code": res.code = 200 ? 0 : 1, //解析接口状态
+                    "msg":  "",//解析数据长度
+                    "data": res.data.records, //解析数据列表
+                    "count":res.data.total,
+                    "limit":res.data.total
+                };
+            }
+            , cols: [[
+                {type: 'numbers', fixed: 'left'}
+                , {field: 'agentName', title: '服务器名'}
+                , {field: 'agentIp', title: '服务器IP'}
+                , {field: 'agentPort', title: '端口号'}
+                , {field: 'groupId', title: '分组ID'}
+                , {field: 'creUser', title: '创建者', templet: function(res){
+                        return res.creUser.userName;
+                    }}
+                , {field: 'cpuSys', title: 'CPU使用率',templet: function(res){
+                        return (res.cpuSys+res.cpuUsed).toFixed(2)+'%';
+                    }}
+                , {field: 'createTime', title: '创建时间',width: 172, sort: true}
+                , {field: 'onLine', title: '网络状态',templet: function (res) {
+                        return + res.onLine?'<p class="online">在线</p>':'<p class="offline">离线</p>';
+                    }}
+            ]]
+            ,done: function(res, curr, count){
+                createChart(res.data[0].id,res.data[0].agentName);
+            }
+        });
+        //监听行单击事件(编辑模块)
+        layui.table.on('row(test)', function(obj){
+            //console.log(obj.tr) //得到当前行元素对象
+            var data = obj.data;
+            createChart(data.id,data.agentName)
+        });
+    }
+    function createChart(id,name) {
+        var endTime = formatDate(new Date());
+        var startTime = formatDate(new Date(new Date().getTime() - (60 * 60 * 1000)));
+        $.get(readearth.host + "/resource/list/timeSlot", {
+            agentId: id,
+            startTime: startTime,
+            endTime: endTime,
+            typeCode: 1
+        }, function (res) {
+            if (res.code == 200) {
+                var data = res.data;
+                var timeArray = [],
+                    usedSArray = [];
+                $.each(data, function (i, item) {
+                    timeArray.push(item.createTime);
+                    usedSArray.push(item.cpuUsed);
+                });
+                option = {
+                    title: {
+                        text: 'CPU使用率%（'+name+')',
+                        textStyle: {
+                            fontSize: 15,
+                            fontWeight: 'bolder',
+                            color: '#333'          // 主标题文字颜色
+                        }
+                    },
+                    tooltip: {
+                        trigger: 'axis'
+                    },
+                    lineStyle:{
+                        normal:{
+                            color:'#32A8FF'
+                        }
+                    },
+                    areaStyle: {
+                        normal:{
+                            //颜色渐变函数 前四个参数分别表示四个位置依次为左、下、右、上
+                            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{
+                                offset: 0,
+                                color: 'rgba(80,141,255,0.39)'
+                            }, {
+                                offset: .34,
+                                color: 'rgba(56,155,255,0.25)'
+                            },{
+                                offset: 1,
+                                color: 'rgba(38,197,254,0.00)'
+                            }])
+
+                        }},
+                    grid: {
+                        left: 80,
+                        right: 80
+                    },
+                    xAxis: {
+                        data: timeArray
+                    },
+                    yAxis: {
+
+                    },
+                    legend: {
+                        data: ['使用率']
+                    },
+                    series: [{
+                        type: 'line',
+                        smooth: true,
+                        stack: '总量',
+                        areaStyle: {normal: {}},
+                        name: '使用率',
+                        data: usedSArray
+                    }]
+                };
+                cpu.setOption(option);
+            }else {
+                parent.layui.layer.msg("数据异常，无法加载！")
+            }
+        });
+
+    }
+    function formatDate(time){
+        var date = new Date(time);
+
+        var year = date.getFullYear(),
+            month = date.getMonth()+1,//月份是从0开始的
+            day = date.getDate(),
+            hour = date.getHours(),
+            min = date.getMinutes(),
+            sec = date.getSeconds();
+        var newTime = year + '-' +
+            (month < 10? '0' + month : month) + '-' +
+            (day < 10? '0' + day : day) + ' ' +
+            (hour < 10? '0' + hour : hour) + ':' +
+            (min < 10? '0' + min : min) + ':' +
+            (sec < 10? '0' + sec : sec);
+
+        return newTime;
     }
 </script>
 </html>

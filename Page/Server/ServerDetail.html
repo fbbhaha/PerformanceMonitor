@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>性能检测平台</title>
+    <title>计算资源监控系统</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <link rel="icon" href="" type="image/x-icon" />
@@ -58,15 +58,14 @@
     $(function () {
         initAjaxLoad();
         if(!getCookie("uId")){
-            window.location.href = "../User/Login.html"
+            parent.window.location.href = "../User/Login.html"
         }
         initedit();
         selectTime();
         $("#times").find("li").each(function (i, item) {
             $(this).click(function () {
                 startTime = $(this).html();
-                endTime = new Date(new Date(startTime).getTime() + (24 * 60 * 60 * 1000))
-                    .format("yyyy-MM-dd");
+                endTime = new Date(new Date(startTime).getTime() + (24 * 60 * 60 * 1000)).format("yyyy-MM-dd");
                 if (i == 0) {
                     var sign = createCharts();
                     if (sign != 4)
@@ -99,6 +98,7 @@
     }
 
     function initDetailCharts(data) {
+
         layui.table.render({
             skin: 'line' //行边框风格
             ,even: true //开启隔行背景
@@ -107,19 +107,24 @@
             cols: [
                 [{
                     field: 'typeName',
-                    title: '盘符路径'
+                    title: '盘符路径',
+                    minWidth:151
                 }, {
                     field: 'sysFileTotal',
-                    title: '磁盘空间'
+                    title: '磁盘空间',
+                    minWidth:151
                 }, {
                     field: 'sysFileUsed',
-                    title: '已使用'
+                    title: '已使用',
+                    minWidth:151
                 }, {
                     field: 'sysFileFree',
-                    title: '可用'
+                    title: '可用',
+                    minWidth:151
                 }, {
                     field: 'sysFileUsage',
                     title: '已使用占比',
+                    minWidth:151,
                     templet: function (res) {
                         return res.sysFileUsage+'%'
                     }
@@ -199,7 +204,7 @@
 
                     },
                     legend: {
-                        data: ['使用率', '等待率']
+                        data: ['使用率']
                     },
                     dataZoom: [{
                         startValue: timeArray[0]
@@ -209,13 +214,10 @@
                     series: [{
                         type: 'line',
                         smooth: true,
+                        stack: '总量',
                         name: '使用率',
+                        areaStyle: {},
                         data: usedSArray
-                    }, {
-                        type: 'line',
-                        smooth: true,
-                        name: '等待率',
-                        data: waitArray
                     }]
                 };
                 cpu.setOption(option);

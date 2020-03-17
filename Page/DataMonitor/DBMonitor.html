@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>性能检测平台</title>
+    <title>计算资源监控系统</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <link rel="icon" href="" type="image/x-icon"/>
@@ -26,7 +26,7 @@
     </div>
 </script>
 <script type="text/html" id="barDemo">
-    <a class="layui-btn layui-btn-xs" href="TaskEdit.html?taskType=5&&id={{d.id}}" target="mainiframe">编辑</a>
+    <a class="layui-btn layui-btn-xs" href="TaskEdit.html?taskType=5&&id={{d.id}}&&aId={{d.agentId}}" target="mainiframe">编辑</a>
     <a class="layui-btn layui-btn-xs layui-btn-danger" lay-event="delete">删除</a>
     <a class="layui-btn layui-btn-xs layui-btn-warm" lay-event="last">最近连接</a>
 </script>
@@ -38,7 +38,7 @@
     $(function () {
         initAjaxLoad();
         if(!getCookie("uId")){
-            window.location.href = "../User/Login.html"
+            parent.window.location.href = "../User/Login.html"
         }
         initServerCharts();
     });
@@ -64,27 +64,27 @@
             , cols: [[
                 {type: 'checkbox', fixed: 'left'}
                 , {type: 'numbers', fixed: 'left'}
-                , {field: 'creUserId', title: '创建者', templet: function(res){
+                , {field: 'creUserId', title: '创建者', minWidth:85, templet: function(res){
                     return res.creUser.userName;
                 }}
-                , {field: 'ntcUserId', title: '负责人', templet: function(res){
+                , {field: 'ntcUserId', title: '负责人', minWidth:85, templet: function(res){
                     return res.ntcUser.userName;
                 }}
-                , {field: 'taskParam', title: '数据库IP', templet: function (res) {
+                , {field: 'taskParam', title: '数据库IP', minWidth:125, templet: function (res) {
                     return  JSON.parse(res.taskParam).ip;
                 }}
-                , {field: 'taskParam', title: '数据库名称', templet: function (res) {
+                , {field: 'taskParam', title: '数据库名称', minWidth:100, templet: function (res) {
                         return  JSON.parse(res.taskParam).dbName;
                     }}
-                , {field: 'taskParam', title: '数据库类型', templet: function (res) {
+                , {field: 'taskParam', title: '数据库类型', minWidth:100, templet: function (res) {
                     var dbTypeArr = ['','MySql','Oracle','SqlServer','PostgreSQL']
                     return  dbTypeArr[JSON.parse(res.taskParam).dbTypeCode];
                 }}
-                , {field: 'createTime', title: '任务创建时间'}
-                , {field: 'execStat', title: '执行情况', templet: function (res) {
+                , {field: 'createTime', title: '任务创建时间', minWidth:165}
+                , {field: 'execStat', title: '执行情况', minWidth:110, templet: function (res) {
                     return res.execStat?'<p class="do">正在执行</p>':'<p class="undo">尚未执行</p>';
                 }}
-                , {fixed: 'right', title: '操作', toolbar: '#barDemo'}
+                , {fixed: 'right', title: '操作', minWidth:190, toolbar: '#barDemo'}
             ]]
             ,page: true
         });

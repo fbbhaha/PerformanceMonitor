@@ -1,6 +1,6 @@
 var readearth = {
   //host: "http://192.168.2.201:9999",
-    host: "http://readearth2014.vicp.cc:20010",
+    host: "http://readearth2014.vicp.cc:20010/monitor",
   uId: 0
 };
 
@@ -52,7 +52,7 @@ function initAjaxLoad() {
       crossDomain: true,
       beforeSend: function() {
           var indexArray = [];
-          this.layindex = parent.layer.load(2, { shade: [0.3, '#000'] });
+          //this.layindex = parent.layer.load(2, { shade: [0.3, '#000'] });
           if (!window.indexArray)
               window.indexArray = indexArray;
           window.indexArray.push(this.layindex);
@@ -61,7 +61,11 @@ function initAjaxLoad() {
           if (window.indexArray||res.code==500) {
               parent.layui.layer.close(window.indexArray[window.indexArray.length - 1]);
               window.indexArray.length = window.indexArray.length - 1;
+          }else if (res.code==401){
+              parent.location.href = "../../Page/User/Login.html"
+
           }
+
       }
   });
 }

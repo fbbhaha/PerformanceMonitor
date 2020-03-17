@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>计算资源监控系统</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="icon" href="" type="image/x-icon" />
+    <script src="../../Scripts/util.js"></script>
+    <link href="../../Scripts/layui/css/layui.css" rel="stylesheet" type="text/css" />
+    <link href="../../Styles/Site.css" rel="stylesheet" type="text/css" />
+    <script src="../../Scripts/jquery/jquery-1.11.2.min.js"></script>
+    <script src="../../Scripts/layui/layui.all.js"></script>
+    <script src="../../Scripts/echarts/echarts.js"></script>
+    <script src="../../Scripts/util.js"></script>
+</head>
+<style>
+    html::-webkit-scrollbar {  width: 6px;}
+    html::-webkit-scrollbar-thumb {border-radius: 10px;-webkit-box-shadow: inset 0 0 5px rgba(0,0,0,0.2);background: rgba(0,0,0,0.2);}
+    html::-webkit-scrollbar-track {-webkit-box-shadow: inset 0 0 5px rgba(0,0,0,0.2);border-radius: 0;background: rgba(0,0,0,0.1);}
+</style>
+<body>
+<blockquote class="layui-elem-quote" style="margin-top: 10px;display: flex">
+    详细信息
+    <a href="" class="refresh">刷新</a>
+    <a href="RedisList.html" class="return">返回</a>
+</blockquote>
+<div class="server-detail">
+    <div class="server-ip" id="redisName"></div>
+    <p>系统信息</p>
+    <div class="server-msg">
+        <div>IP地址：<span id="redisIp"></span></div>
+        <div>端口号：<span id="redisPort"></span></div>
+        <div>创建时间：<span id="createTime"></span></div>
+    </div>
+    <p>内存信息</p>
+    <table class="layui-hide" id="memoryTable"></table>
+    <br/>
+    <p>服务器信息</p>
+    <table class="layui-hide" id="serverTable"></table><br/>
+    <p>已连接客户端信息</p>
+    <table class="layui-hide" id="clientsTable"></table><br/>
+    <p>CPU计算量统计信息</p>
+    <table class="layui-hide" id="cpuTable"></table>
+</div>
+</body>
+<script>
+    var id = GetQueryString("id");
+    $(function () {
+        initAjaxLoad();
+        if(!getCookie("uId")){
+            parent.window.location.href = "../User/Login.html"
+        }
+        initedit();
+    });
+
+    function initedit() {
+        $.getJSON(readearth.host + "/redis/details", {
+            id: id
+        }, function (res) {
+            if (res.code == 200) {
+                var data = res.data;
+                initDetailCharts(data);
+                $("#redisIp").html(data.redisIp);
+                $("#redisName").html(data.redisName);
+                $("#createTime").html(data.createTime);
+                $("#redisPort").html(data.redisPort);
+            }
+        });
+    }
+
+    function initDetailCharts(data) {
+        layui.table.render({
+            skin: 'line' //行边框风格
+            ,even: true //开启隔行背景
+            ,elem: '#memoryTable',
+            data: [data.memory],
+            cols: [
+                [{
+                    field: 'used_memory_human',
+                    title: '内存总量',
+                    minWidth:135
+                }, {
+                    field: 'used_memory_rss',
+                    title: '常驻集大小',
+                    minWidth:135
+                }, {
+                    field: 'used_memory_peak_human',
+                    title: '内存消耗峰值',
+                    minWidth:135
+                }, {
+                    field: 'used_memory_lua',
+                    title: 'lua引擎使用内存',
+                    minWidth:135
+                }, {
+                    field: 'mem_fragmentation_ratio',
+                    title: '已分配/内存总量',
+                    minWidth:135
+                }, {
+                    field: 'mem_allocator',
+                    title: '内存分配器',
+                    minWidth:135
+                }]
+            ]
+        });
+        layui.table.render({
+            skin: 'line' //行边框风格
+            ,even: true //开启隔行背景
+            ,elem: '#serverTable',
+            data: [data.server],
+            cols: [
+                [{
+                    field: 'redis_version',
+                    title: '版本号',
+                    minWidth:88
+                }, {
+                    field: 'redis_mode',
+                    title: '运行模式',
+                    minWidth:100
+                }, {
+                    field: 'arch_bits',
+                    title: '架构',
+                    minWidth:88
+                }, {
+                    field: 'os',
+                    title: '宿主操作系统',
+                    minWidth:115
+                }, {
+                    field: 'multiplexing_api',
+                    title: '事件处理机制',
+                    minWidth:115
+                }, {
+                    field: 'gcc_version',
+                    title: 'gcc版本号',
+                    minWidth:115
+                }, {
+                    field: 'process_id',
+                    title: '进程id',
+                    minWidth:88
+                }, {
+                    field: 'tcp_port',
+                    title: '监听端口',
+                    minWidth:88
+                }, {
+                    field: 'uptime_in_days',
+                    title: '启动总时间',
+                    minWidth:115
+                }, {
+                    field: 'hz',
+                    title: '内部调度频率',
+                    minWidth:115
+                }, {
+                    field: 'config_file',
+                    title: '配置文件路径',
+                    minWidth:115
+                }]
+            ]
+        });
+        layui.table.render({
+            skin: 'line' //行边框风格
+            ,even: true //开启隔行背景
+            ,elem: '#clientsTable',
+            data: [data.clients],
+            cols: [
+                [{
+                    field: 'connected_clients',
+                    title: '已连接客户端数',
+                    minWidth:160
+                }, {
+                    field: 'client_recent_max_output_buffer',
+                    title: '最长输出列表',
+                    minWidth:160
+                }, {
+                    field: 'client_recent_max_input_buffer',
+                    title: '最大输入缓存',
+                    minWidth:160
+                }, {
+                    field: 'blocked_clients',
+                    title: '正在等待的客户端数',
+                    minWidth:160
+                }]
+            ]
+        });
+        layui.table.render({
+            skin: 'line' //行边框风格
+            ,even: true //开启隔行背景
+            ,elem: '#cpuTable',
+            data: [data.cpu],
+            cols: [
+                [{
+                    field: 'used_cpu_sys',
+                    title: '主进程在核心态所占用的CPU时长',
+                    minWidth:270
+                }, {
+                    field: 'used_cpu_user',
+                    title: '主进程在用户态所占用的CPU时长',
+                    minWidth:270
+                }, {
+                    field: 'used_cpu_sys_children',
+                    title: '后台进程在核心态所占用的CPU时长',
+                    minWidth:270
+                }, {
+                    field: 'used_cpu_user_children',
+                    title: '后台进程在用户态所占用的CPU时长',
+                    minWidth:270
+                }]
+            ]
+        });
+    }
+</script>
+
+</html>

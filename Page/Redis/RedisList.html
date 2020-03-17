@@ -13,28 +13,26 @@
     <script src="../../Scripts/util.js"></script>
 </head>
 <body>
-    <style>
-        .layer-select{
-            padding: 10px 0;
-        }    
-    </style>
+<style>
+    .layer-select{
+        padding: 10px 0;
+    }
+</style>
 <div class="servertable">
-    <p style="font-size: 16px;">服务器列表</p>
+    <p style="font-size: 16px;">Redis监控列表</p>
     <hr>
     <table class="layui-hide" id="test" lay-filter="test"></table>
 </div>
 
 <script type="text/html" id="toolbarDemo">
     <div class="layui-btn-container">
-        <a class="layui-btn layui-btn-sm" href="ServerEdit.html" target="mainiframe">新增</a>
+        <a class="layui-btn layui-btn-sm" href="RedisEdit.html" target="mainiframe">新增</a>
         <a class="layui-btn layui-btn-sm" lay-event="delete">删除</a>
     </div>
 </script>
 <script type="text/html" id="barDemo">
-    <a class="layui-btn layui-btn-xs" href="ServerEdit.html?aId={{d.id}}" target="mainiframe">编辑</a>
-    <a class="layui-btn layui-btn-xs layui-btn-normal" href="ServerDetail.html?id={{d.id}}" target="mainiframe">系统信息</a>
-    <a class="layui-btn layui-btn-danger layui-btn-xs" href="ServerDetail.html?id={{d.id}}&&#cpu">图表</a>
-    <a class="layui-btn layui-btn-xs layui-btn-warm " lay-event="update">更新任务</a>
+    <a class="layui-btn layui-btn-xs" href="RedisEdit.html?aId={{d.id}}" target="mainiframe">编辑</a>
+    <a class="layui-btn layui-btn-xs layui-btn-normal" href="RedisDetail.html?id={{d.id}}" target="mainiframe">查看详情</a>
 </script>
 </body>
 <script>
@@ -49,7 +47,7 @@
     function initServerCharts(){
         layui.table.render({
             elem: '#test'
-            , url: readearth.host + "/agent/list"
+            , url: readearth.host + "/redis/list"
             , toolbar: '#toolbarDemo' //开启头部工具栏，并为其绑定左侧模板
             , parseData: function (res) { //res 即为原始返回的数据
                 return {
@@ -62,21 +60,14 @@
             , cols: [[
                 {type: 'checkbox', fixed: 'left'}
                 , {type: 'numbers', fixed: 'left'}
-                , {field: 'agentName', title: '服务器名', minWidth:130}
-                , {field: 'agentIp', title: '服务器IP', minWidth: 130}
-                , {field: 'agentPort', title: '端口号', minWidth: 80}
-                , {field: 'groupId', title: '分组ID', minWidth: 80}
-                , {field: 'creUser', title: '创建者', minWidth: 80, templet: function(res){
-                    return res.creUser.userName;
-                }}
-                , {field: 'cpuSys', title: 'CPU使用率', minWidth: 104,templet: function(res){
-                    return (res.cpuSys+res.cpuUsed).toFixed(2)+'%';
-                }}
-                , {field: 'createTime', title: '创建时间', sort: true,width: 170}
-                , {field: 'onLine', title: '网络状态', minWidth: 100,templet: function (res) {
-                        return + res.onLine?'<p class="online">在线</p>':'<p class="offline">离线</p>';
+                , {field: 'redisName', title: 'redis名称', minWidth:100}
+                , {field: 'redisIp', title: 'IP地址', minWidth:125}
+                , {field: 'redisPort', title: '端口号', minWidth:100}
+                , {field: 'user', title: '创建者', minWidth:100, templet: function(res){
+                        return res.user.userName;
                     }}
-                , {fixed: 'right', title: '操作', toolbar: '#barDemo', width: 270}
+                , {field: 'createTime', title: '创建时间', minWidth:165, sort: true,width: 170}
+                , {fixed: 'right', title: '操作', toolbar: '#barDemo',width: 200}
             ]]
             , page: true
         });
@@ -100,7 +91,7 @@
                             yes: function(index, layero){
                                 parent.layer.close(index); //如果设定了yes回调，需进行手工关闭
                                 $.ajax({
-                                    url:readearth.host+'/agent/batchDel',
+                                    url:readearth.host+'/redis/batchDel',
                                     data:{"aIdArr":idarr.join(",")},
                                     datatype:"json",
                                     type:"delete",
@@ -117,9 +108,9 @@
                                     }
                                 })
                             }
-                        }); 
+                        });
                     }
-                break;
+                    break;
             }
         });
 
@@ -128,12 +119,12 @@
             var tabledata = layui.table.cache.test;
             if (obj.event=="update"){
                 var data = obj.data;
-                var forecastItem = ["","CPU监控","内存监控","系统监控","磁盘监控"]; 
+                var forecastItem = ["","CPU监控","内存监控","系统监控","磁盘监控"];
                 $.ajaxSettings.async = false;
                 var html = '<div class="layui-form" lay-filter="serverlayerform" style = "padding:15px 0"><div class="layui-form-item">\n' +
-                '                       <label class="layui-form-label">选择负责人</label>\n' +
-                '                       <div class="layui-input-inline">\n' +
-                '                           <select name="ntcUserId">\n';
+                    '                       <label class="layui-form-label">选择负责人</label>\n' +
+                    '                       <div class="layui-input-inline">\n' +
+                    '                           <select name="ntcUserId">\n';
                 $.getJSON(readearth.host+"/user/list",function(res){
                     if(res.code == 200){
                         $.each(res.data,function(i,item){
@@ -148,15 +139,15 @@
                             var check = 'checked=""'
                             check = item.execStat?check:""
                             html += '<div class="layui-form" lay-filter="itemform'+i+'">'+
-                '                    <div class="layui-form-item layer-select">\n' +
-                '                        <input type="hidden" name="id" value='+item.id+'>'+
-                '                       <label class="layui-form-label">'+forecastItem[item.type.code]+'</label>\n' +
-                '                       <div class="layui-input-block">\n' +
-                '                           <input type="checkbox" name="execStat" title="开启" '+check+'>\n' +
-                '                       </div>\n' +
-                '                    </div></div>';
+                                '                    <div class="layui-form-item layer-select">\n' +
+                                '                        <input type="hidden" name="id" value='+item.id+'>'+
+                                '                       <label class="layui-form-label">'+forecastItem[item.type.code]+'</label>\n' +
+                                '                       <div class="layui-input-block">\n' +
+                                '                           <input type="checkbox" name="execStat" title="开启" '+check+'>\n' +
+                                '                       </div>\n' +
+                                '                    </div></div>';
                         });
-                        html += ' </div>'; 
+                        html += ' </div>';
                     }
                 });
                 parent.layui.layer.open({
@@ -186,13 +177,13 @@
                                         parent.layui.layer.msg("更新成功！",{icon:6})
                                     }else
                                         parent.layui.layer.msg("更新失败！",{icon:5});
-                                    
+
                                 },
                                 error: function(){
                                     parent.layui.layer.msg("抱歉，系统异常！",{icon:5})
                                 }
-                            })                          
-                        }   
+                            })
+                        }
                     }
                 });
             }

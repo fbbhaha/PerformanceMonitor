@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>性能检测平台</title>
+    <title>计算资源监控系统</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <link rel="icon" href="" type="image/x-icon" />
@@ -194,17 +194,17 @@
     $(function () {
         initAjaxLoad();
         if(!getCookie("uId")){
-            window.location.href = "../User/Login.html"
+            parent.window.location.href = "../User/Login.html"
         }
-        initAjaxLoad();
         initList();
         var taskType = GetQueryString("taskType");
         var id = GetQueryString("id");
-        $("[name='taskType']").val(taskType)
-        $("[name= 'ntcUserId']").val(getCookie("uId"))
+        var aId = GetQueryString("aId");
+        $("[name='taskType']").val(taskType);
+        $("[name= 'ntcUserId']").val(getCookie("uId"));
         if(id){
-            $("[name='id']").val(id)
-            showEdit(id,taskType);
+            $("[name='id']").val(id);
+            showEdit(id,taskType,aId);
         }
         
         if ($("[name='taskType']").val() == 5) {
@@ -230,7 +230,7 @@
     });
 
     //渲染表单数据
-    function showEdit(id,taskType) {
+    function showEdit(id,taskType,aId) {
         if(taskType==tkType.db){
             $.getJSON(readearth.host+"/task/details",{tId:id},function(res){
                 if(res.code==200){
@@ -239,6 +239,7 @@
                     layui.form.val("form", {
                         "taskType": taskType,
                         "ntcUserId": data.ntcUserId,
+                        "agentId": aId,
                         "execStat": data.execStat,
                         "ip": dbdata.ip,
                         "port": dbdata.port,
@@ -246,7 +247,7 @@
                         "userName": dbdata.userName,
                         "password": dbdata.password,
                         "dbName": dbdata.dbName
-                    })
+                    });
                 }
             })
         }else{
@@ -256,6 +257,7 @@
                     var portdata = JSON.parse(data.taskParam)
                     layui.form.val("form", {
                         "taskType": taskType,
+                        "agentId": aId,
                         "ntcUserId": data.ntcUserId,
                         "execStat": data.execStat,
                         "targetUrl": portdata.targetUrl,
@@ -274,22 +276,19 @@
             if(res.code == 200){
                 var html = "";
                 $.each(res.data,function(i,item){
-                    console.log(i)
                     html += '<option value="'+item.id+'">'+item.userName+'</option>' ;
-                    $("[name='ntcUserId']").append(html)
-                })
+                });
+                $("[name='ntcUserId']").append(html);
                 $("[name='ntcUserId']").val(getCookie("uId"))
             }
             layui.form.render();
-        })
+        });
         $.getJSON(readearth.host+"/agent/all",function(res){
             if(res.code==200){
                 var html = "";
                 $.each(res.data,function(i,item){
-                    console.log(res.data)
                     html += '<option value="'+item.id+'">'+item.agentName+'</option>' ;
-                    
-                })
+                });
                 $("[name='agentId']").append(html)
             }
             layui.form.render();
@@ -308,7 +307,7 @@
                 data.field.taskParam = JSON.stringify(layui.form.val("portpara"))
             }
             var method = "update";
-            var type = "put"
+            var type = "put";
             if( $("[name='id']").val() == 0){
                 method = "add";
                 type = "post"
