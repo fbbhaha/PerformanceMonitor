@@ -52,7 +52,7 @@ function initAjaxLoad() {
       crossDomain: true,
       beforeSend: function() {
           var indexArray = [];
-          //this.layindex = parent.layer.load(2, { shade: [0.3, '#000'] });
+          this.layindex = parent.layer.load(2, { shade: [0.3, '#000'] });
           if (!window.indexArray)
               window.indexArray = indexArray;
           window.indexArray.push(this.layindex);
